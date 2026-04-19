@@ -115,6 +115,45 @@ const SK = {
   elemental_form:{n:'Elemental Form',cd:7,cmb:true}
 };
 
+// ── Monster portraits (served from /monsters/ static folder) ─────────────
+const MOB_PORTRAITS = {
+  // Frozen Tundra
+  'Frost Queen':        'frost_queen.jpg',
+  'Frost Knight':       'frost_knight.jpg',
+  'Ice Shard Golem':    'ice_golem.jpg',
+  'Yeti':               'yeti.jpg',
+  'Ice Wraith':         'ice_wraith.jpg',
+  'Frost Wolf':         'frost_wolf.jpg',
+  // Volcanic Peak
+  'Flame Titan':        'flame_titan.jpg',
+  'Rock Wyrm':          'rock_wyrm.jpg',
+  'Fire Imp':           'fire_imp.jpg',
+  'Lava Golem':         'lava_golem.jpg',
+  'Fire Elemental':     'fire_elem.jpg',
+  // Dungeon Lower
+  'Dungeon Lich':       'dungeon_lich.jpg',
+  "Lich's Champion":    'lichs_champion.jpg',
+  'Void Archon':        'void_archon.jpg',
+  'Void Cultist':       'void_cultist.jpg',
+  'Young Dragon':       'young_dragon.jpg',
+  'Shadow Wraith':      'shadow_wraith.jpg',
+  // Forest
+  'Bog Witch':          'bog_witch.jpg',
+  'Swamp Serpent':      'swamp_serpent.jpg',
+  'Stone Golem':        'stone_golem.jpg',
+  'Forest Troll':       'forest_troll.jpg',
+  'Timber Wolf':        'timber_wolf.jpg',
+  'Giant Rat':          'giant_rat.jpg',
+  // Dungeon Upper
+  'Corrupt Priest':     'corrupt_priest.jpg',
+  'Prison Guard Ghost': 'prison_guard_ghost.jpg',
+  'Crypt Lich':         'crypt_lich.jpg',
+  'Risen Cultist':      'risen_cultist.jpg',
+  'Risen Corpse':       'risen_corpse.jpg',
+  'Armored Skeleton':   'armor_skel.jpg',
+  'Skeleton Warrior':   'skel_warrior.jpg',
+};
+
 // ── Skill execution ───────────────────────────────────────────────────────
 function execSkill(ws, p, sid, m) {
   const D = (base, bonus=0, nodef=false) => {
@@ -1203,6 +1242,9 @@ function startCombat(ws, p, target) {
   say(ws, `You engage ${m.name}! [HP:${m.hp}/${m.maxhp}]`, 'combat');
   say(ws, 'ATTACK / FLEE / SKILL [name] / USE [item]', 'sys');
   sayRoom(p.room, `${p.name} engages ${m.name}!`, 'combat', ws);
+  // Send monster portrait if available
+  const portrait=MOB_PORTRAITS[m.name];
+  if(portrait)raw(ws,{type:'mob_portrait',name:m.name,img:'/monsters/'+portrait,hp:m.hp,maxhp:m.maxhp,atk:m.atk,def:m.def});
 }
 
 function playerAttack(ws, p) {
@@ -1214,6 +1256,8 @@ function playerAttack(ws, p) {
   const d = Math.max(1, raw2-m.def+rnd(-1,2));
   m.hp -= d;
   say(ws, `You strike ${m.name} for ${d} damage!${pb>0?` (+${pb} poison)`:''} [${Math.max(0,m.hp)}/${m.maxhp} HP]`, 'combat');
+  // Update monster HP on portrait
+  const _port=MOB_PORTRAITS[m.name];if(_port)raw(ws,{type:'mob_hp',hp:Math.max(0,m.hp),maxhp:m.maxhp});
   sayRoom(p.room, `${p.name} hits ${m.name} for ${d}!`, 'combat', ws);
   if (p.companion&&p.companion.hp>0) { const cd=rnd(Math.floor(p.companion.atk*0.6),p.companion.atk); m.hp-=cd; say(ws,`${p.companion.name} attacks for ${cd}!`,'narrate'); }
   if (p.zombies&&p.zombies.length) { let zt=0; p.zombies.forEach(z=>{const zd=rnd(Math.floor(z.atk*0.5),z.atk);m.hp-=zd;zt+=zd;}); say(ws,`Your ${p.zombies.length} zombie(s) deal ${zt} damage!`,'narrate'); }
@@ -1311,37 +1355,37 @@ function doVictory(ws, p) {
 // ── NPC definitions ───────────────────────────────────────────────────────
 const NPCS = {
   tormund: {name:'Tormund',title:'Barkeep of the Broken Flagon',room:'tavern',ai:true,
-    portrait:'tormund',
+    portrait:'tormund',portraitFile:'tormund.jpg',
     desc:'A barrel-chested man with a grey-streaked beard and the permanently tired eyes of someone who has heard too many hard-luck stories. He has run the Broken Flagon for twenty years and knows every face that has passed through Shadowmere — including those that never came back.',
     personality:"You are Tormund, gruff but warm barkeep at The Broken Flagon in Shadowmere. Keep responses 2-3 sentences, stay in character. You know the dungeon is south then down, the shrine is in the town square, Grimwald makes weapons, Mira sells potions, the Shadow Broker is in the alley cellar.",
     greeting:"Tormund wipes down the bar. 'What'll it be?'",
     idle:["Tormund mutters: 'Haven't seen this many dead walk since the last purge...'","Tormund glances at the door. 'Every hero who went into that dungeon... most don't come back the same.'"]},
   grimwald:{name:'Grimwald',title:'Master Weaponsmith',room:'weaponsmith',ai:true,
-    portrait:'grimwald',
+    portrait:'grimwald',portraitFile:'grimwald.jpg',
     desc:'A mountain of a man, arms like forge bellows and hands scarred from a lifetime at the anvil. Grimwald speaks rarely and means every word. The weapons on his walls have ended more monsters than any adventurer can count.',
     personality:"You are Grimwald, taciturn master weaponsmith. Speak in short blunt sentences. You care deeply about quality steel. 1-2 sentences maximum.",
     greeting:"Grimwald doesn't look up. 'Shop or talk. Not both.'",
     idle:["Grimwald holds a blade to the light and plunges it back into the forge.","Grimwald growls: 'Dull blade gets you killed.'"]},
   mira:    {name:'Mira',title:'Apothecary',room:'apothecary',ai:true,
-    portrait:'mira',
+    portrait:'mira',portraitFile:'mira.jpg',
     desc:'A silver-haired woman of indeterminate age with quick, precise hands and an unsettling habit of diagnosing ailments before you have mentioned them. She has studied at three colleges of medicine and chosen this ruined town because, as she says, it keeps her busiest.',
     personality:"You are Mira, calm knowledgeable apothecary. Speak thoughtfully and precisely. 2-3 sentences. You know about herbs, potions, and monster drops.",
     greeting:"Mira looks up from her mortar. 'What ails you, traveller?'",
     idle:["Mira carefully measures a powder, lips moving silently.","Mira says softly: 'The dungeon air carries a miasma. Come to me if you feel weakened.'"]},
   aldric:  {name:'Father Aldric',title:'Last Priest of the Temple',room:'temple',ai:true,
-    portrait:'aldric',
+    portrait:'aldric',portraitFile:'aldric.jpg',
     desc:'The last surviving priest of the Temple of the Fallen. Once the head of a thriving order; now an old man alone in a ruin, keeping candles lit as an act of stubbornness against the dark. His faith has been shaken but never broken.',
     personality:"You are Father Aldric, last priest of the Temple of the Fallen. Old, tired, sorrowful. Formal archaic speech. 2-3 sentences.",
     greeting:"Father Aldric turns from the altar, eyes red from weeping. 'Bless you for coming, child.'",
     idle:["Father Aldric whispers a prayer, hands clasped tight.","Aldric murmurs: 'The lich was once a great wizard who sought immortality. He found it — at terrible cost.'"]},
   broker:  {name:'The Shadow Broker',title:'Dealer in Rare Goods',room:'black_market',ai:true,
-    portrait:'broker',
+    portrait:'broker',portraitFile:'broker.jpg',
     desc:'No one knows the Shadow Broker real name, race, or history. They have been in that cellar, it is said, longer than the town has stood. They deal in objects that have no business existing and information that has no business being known.',
     personality:"You are the Shadow Broker, mysterious and cryptic. Speak in half-sentences, implying more than you say. 1-2 sentences, occasionally unsettling.",
     greeting:"The hooded figure doesn't move. A rasping voice: 'I wondered when you'd find me.'",
     idle:["The Shadow Broker seems to watch you, though you can't see their eyes.","A whisper: 'I know what you seek. The question is the price.'"]},
   pip:     {name:'Pip',title:'Exotic Animal Merchant',room:'pet_store',ai:true,
-    portrait:'pip',
+    portrait:'pip',portraitFile:'pip.jpg',
     desc:'A halfling of boundless energy and zero self-preservation instinct who has been bitten, stung, clawed, and sat on by every creature in the Menagerie. Pip considers this a sign of mutual affection. Every animal here has a name, a birthday, and a complete backstory.',
     personality:"You are Pip, enthusiastic halfling who runs the Exotic Menagerie. You LOVE animals with infectious enthusiasm. Very cheerful, uses exclamation points. 2-3 sentences.",
     greeting:"Pip bounces up. 'Oh! A visitor! Don't mind Chester — he bites but only out of love!'",
@@ -1355,11 +1399,19 @@ const NPCS = {
     greeting:"Barret looks up slowly. 'Long road to find Ashford. Most go around. What brings you here?'",
     idle:["Barret polishes a glass and stares at nothing.","Barret murmurs: 'Village used to be three times this size. Before the war.'"]},
   finn:    {name:'Brother Finn',title:'Healer',room:'ashford_healer',ai:true,
+    portrait:'finn',portraitFile:'finn.jpg',
+    desc:'A gentle travelling monk who stayed in Ashford to tend the sick. Young face but calm beyond his years. Simple robes, healing herbs hanging from his belt.',
     personality:"You are Brother Finn, a gentle travelling monk who stayed in Ashford to tend the sick. Calm, compassionate, slightly otherworldly. You know about healing, herbs, and the spiritual nature of the Dungeon Lich's curse.",
     greeting:"Finn looks up with kind eyes. 'Ah, a traveller. Are you hurt? Sit, sit.'",
     idle:["Finn hums softly while grinding herbs.","Finn says quietly: 'The darkness in the dungeon seeps into the very soil here. I can feel it.'"]},
+  voss:    {name:'Registrar Voss',title:'Guild Registry Clerk',room:'guild_registry',ai:true,
+    portrait:'voss',portraitFile:'voss.jpg',
+    desc:'An officious man of precise habits and ink-stained fingers surrounded by towering ledgers. Registrar Voss has processed every guild application in Shadowmere for twenty years. He finds disorder personally offensive.',
+    personality:"You are Registrar Voss, officious bureaucratic clerk at the Guild Registry. Precise, formal, slightly condescending. You care deeply about proper procedure and documentation. 1-2 sentences.",
+    greeting:"Voss looks up over his spectacles. 'Name. Purpose. And please do not touch the ledgers.'",
+    idle:["Voss mutters while cross-referencing two enormous ledgers.","Voss sighs. 'Another guild with an unapproved sigil. Third this month.'"]},
   keeper:  {name:'The Keeper',title:'Guardian of the Adventure Shrine',room:'adventure_shrine',ai:true,
-    portrait:'keeper',
+    portrait:'keeper',portraitFile:'keeper.jpg',
     desc:'An ancient figure of indeterminate age, gender, and possibly species. The Keeper has tended the shrine since before living memory. They speak of heroes who passed through centuries ago as though the encounters were yesterday. They are always calm. This is more unsettling than anger would be.',
     personality:"You are the Keeper, ancient guardian of the Adventure Shrine. Calm, measured, with ancient sadness. Know details about every adventure zone and their bosses. Poetic, 2-3 sentences.",
     greeting:"The Keeper turns slowly. Ancient eyes regard you. 'Another soul seeking glory in distant lands.'",
@@ -2374,17 +2426,19 @@ function handleCmd(ws,p,raw){
 }
 
 function showNPCProfile(ws,npc){
-  // Send NPC profile card to client — same format as player profile
-  // but with npc-specific fields
+  const npcKey=Object.keys(NPCS).find(k=>NPCS[k]===npc)||'';
+  const hasChainQ=Object.values(QUEST_CHAINS||{}).some(q=>q.giver===npcKey);
+  const hasBaseQ=Object.values(QUESTS).some(q=>q.giver===npcKey);
   raw(ws,{
     type:'npc_profile',
     name:npc.name,
     title:npc.title||'',
     desc:npc.desc||'',
     portrait:npc.portrait||'',
+    portraitImg:npc.portraitFile?('/npcs/'+npc.portraitFile):null,
     greeting:npc.greeting||'',
     room:world[npc.room]?.name||npc.room,
-    hasQuests:!!(Object.values(QUESTS).find(q=>q.giver===Object.keys(NPCS).find(k=>NPCS[k]===npc)))
+    hasQuests:hasBaseQ||hasChainQ
   });
 }
 
@@ -2552,6 +2606,15 @@ function handleAuth(ws,sess,inputMsg){
 const server=http.createServer((req,res)=>{
   // Health check for Render
   if(req.url==='/health'){res.writeHead(200);res.end('OK');return;}
+  // Serve monster/npc images
+  if(req.url.startsWith('/monsters/')||req.url.startsWith('/npcs/')){
+    const imgPath=path.join(__dirname,'public',req.url.split('?')[0]);
+    fs.readFile(imgPath,(err,data)=>{
+      if(err){res.writeHead(404);res.end('Not found');}
+      else{res.writeHead(200,{'Content-Type':'image/jpeg','Cache-Control':'public,max-age=86400'});res.end(data);}
+    });
+    return;
+  }
   // Serve client.html for all non-asset requests
   const isAsset = req.url.match(/\.(js|css|png|ico)$/);
   const fp = isAsset
