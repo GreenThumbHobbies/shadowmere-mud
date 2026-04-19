@@ -162,6 +162,29 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
   <button id="picker-confirm" disabled onclick="confirmPick()">CONFIRM SELECTION</button>
 </div>
 
+<!-- MONSTER COMBAT CARD -->
+<div id="mob-card" style="display:none;position:fixed;right:210px;top:70px;z-index:500;width:200px;background:var(--bg1);border:1px solid var(--red);border-radius:5px;overflow:hidden;box-shadow:0 0 30px rgba(200,80,20,.3)">
+  <div style="position:relative">
+    <img id="mob-img" src="" alt="" style="width:100%;display:block;object-fit:cover;max-height:260px">
+    <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.9));padding:8px">
+      <div id="mob-name" style="font-family:var(--serif);font-size:13px;color:#ff8060;letter-spacing:1px"></div>
+      <div id="mob-stats" style="font-size:10px;color:var(--text2);margin-top:2px"></div>
+    </div>
+  </div>
+  <div style="padding:6px 8px;background:var(--bg0)">
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-bottom:3px">
+      <span>HP</span><span id="mob-hp-text" style="color:var(--red)">—</span>
+    </div>
+    <div style="background:var(--bg2);height:6px;border-radius:3px;overflow:hidden">
+      <div id="mob-hp-bar" style="height:100%;background:var(--red);width:100%;transition:width .3s"></div>
+    </div>
+    <div style="display:flex;gap:4px;margin-top:6px">
+      <button class="qb cc" style="flex:1;font-size:10px" onclick="cmd('attack')">ATTACK</button>
+      <button class="qb" style="flex:1;font-size:10px;color:var(--text2)" onclick="cmd('flee')">FLEE</button>
+    </div>
+  </div>
+</div>
+
 <!-- NPC PROFILE MODAL -->
 <div id="npc-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center">
   <div id="npc-card" style="background:var(--bg1);border:1px solid var(--border2);border-radius:6px;width:480px;max-width:95vw;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 0 60px rgba(58,158,222,.2)">
@@ -430,6 +453,8 @@ function handle(msg){
     case'profile':     openProfile(msg); break;
     case'avatar_saved':onAvatarSaved(msg.avatar); break;
     case'npc_profile':  openNPCProfile(msg); break;
+    case'mob_portrait': showMobCard(msg); break;
+    case'mob_hp':       updateMobHP(msg); break;
     case'pick_race':   openPicker('race', msg.races); break;
     case'pick_class':  openPicker('class', msg.classes); break;
   }
@@ -533,6 +558,7 @@ function updateSidebar(d){
   const xpPct=d.xpNext?Math.min(100,Math.round(d.xp/d.xpNext*100)):0;
   document.getElementById('xpbar').style.width=xpPct+'%';
   document.getElementById('combat-banner').classList.toggle('active',!!d.inCombat);
+  if(!d.inCombat)hideMobCard();
   document.getElementById('shop-banner').classList.toggle('active',!!d.shopNearby);
   document.getElementById('shrine-banner').classList.toggle('active',!!d.shrineNearby);
   const ci=document.getElementById('comp-info'),cn=document.getElementById('comp-none');
@@ -660,11 +686,45 @@ function openNPCProfile(d){
   document.getElementById('npc-desc').textContent=d.desc||'A mysterious figure.';
   document.getElementById('npc-greeting').textContent=d.greeting||'';
   document.getElementById('npc-quest-badge').style.display=d.hasQuests?'block':'none';
-  drawNPCPortrait(document.getElementById('npc-portrait-canvas'),d.portrait||'keeper');
+  const canvas=document.getElementById('npc-portrait-canvas');
+  const wrap=document.getElementById('npc-portrait-wrap');
+  if(d.portraitImg){
+    // Use real image — hide canvas, show <img>
+    let img=document.getElementById('npc-portrait-real');
+    if(!img){img=document.createElement('img');img.id='npc-portrait-real';img.style.cssText='width:100%;height:100%;object-fit:cover;display:block;';wrap.appendChild(img);}
+    img.src=d.portraitImg+'?t='+Date.now();
+    img.style.display='block';
+    canvas.style.display='none';
+  }else{
+    // Fall back to canvas art
+    const real=document.getElementById('npc-portrait-real');
+    if(real)real.style.display='none';
+    canvas.style.display='block';
+    drawNPCPortrait(canvas,d.portrait||'keeper');
+  }
   document.getElementById('npc-overlay').style.display='flex';
 }
 function closeNPCProfile(){document.getElementById('npc-overlay').style.display='none';}
 document.getElementById('npc-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('npc-overlay'))closeNPCProfile();});
+
+// ── MONSTER COMBAT CARD ──────────────────────────────────────────────────
+function showMobCard(d){
+  const card=document.getElementById('mob-card');
+  const img=document.getElementById('mob-img');
+  img.src=d.img+'?t='+Date.now(); // cache bust
+  document.getElementById('mob-name').textContent=d.name;
+  document.getElementById('mob-stats').textContent='ATK: '+d.atk+'  DEF: '+d.def;
+  updateMobHP({hp:d.hp,maxhp:d.maxhp});
+  card.style.display='block';
+}
+function updateMobHP(d){
+  const pct=d.maxhp?Math.max(0,Math.round(d.hp/d.maxhp*100)):0;
+  const ht=document.getElementById('mob-hp-text');
+  const bar=document.getElementById('mob-hp-bar');
+  if(ht)ht.textContent=Math.max(0,d.hp)+'/'+d.maxhp;
+  if(bar){bar.style.width=pct+'%';bar.style.background=pct<25?'#cc2200':pct<50?'#aa6600':'var(--red)';}
+}
+function hideMobCard(){const c=document.getElementById('mob-card');if(c)c.style.display='none';}
 
 function triggerUpload(){
   const fi=getFileInput();
