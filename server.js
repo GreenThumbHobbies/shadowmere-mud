@@ -642,7 +642,9 @@ function sidebar(ws, p) {
     hp:p.hp, maxhp:p.maxhp, xp:p.xp, xpNext:p.level*500,
     gold:p.gold, atk:p.atk, def:p.def,
     room:world[p.room]?.name||p.room, zone:world[p.room]?.zone||'',
-    equipped:p.equipped, inventory:p.inventory, skills,
+    equipped:p.equipped,
+    inventory:(()=>{const c={};(p.inventory||[]).forEach(i=>{c[i]=(c[i]||0)+1;});return Object.entries(c).map(([n,x])=>x>1?`(${x}) ${n}`:n);})(),
+    skills,
     inCombat:p.inCombat, shopNearby:!!(world[p.room]?.shop),
     shrineNearby:!!(world[p.room]?.teleport),
     companion:p.companion?{name:p.companion.name,hp:p.companion.hp,atk:p.companion.atk,maxhp:p.companion.maxhp}:null,
@@ -1760,7 +1762,12 @@ function handleCmd(ws,p,raw){
     }
     case'inventory':case'inv':case'i':{
       if(!p.inventory.length&&!p.equipped.length)return say(ws,'Empty.','sys');
-      if(p.inventory.length)say(ws,'Pack: '+p.inventory.join(', '),'sys');
+      if(p.inventory.length){
+        const counts={};
+        p.inventory.forEach(i=>{counts[i]=(counts[i]||0)+1;});
+        const stacked=Object.entries(counts).map(([name,n])=>n>1?`(${n}) ${name}`:name);
+        say(ws,'Pack: '+stacked.join(', '),'sys');
+      }
       if(p.equipped.length){
         say(ws,'Equipped: '+p.equipped.join(', '),'sys');
         // Show bag summaries
