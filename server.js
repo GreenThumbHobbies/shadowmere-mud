@@ -1937,6 +1937,9 @@ function handleCmd(ws,p,raw){
     adminCmd(ws,p,raw);return;
   }
 
+  // Parse command and args early so alias resolution works
+  const _words=input.split(/\s+/),v=_words[0],rest=_words.slice(1).join(' ');
+
   // Resolve aliases before processing
   const aliasResolved=(p.aliases||{})[v];
   if(aliasResolved&&v!==aliasResolved.split(' ')[0]){
@@ -1944,7 +1947,6 @@ function handleCmd(ws,p,raw){
   }
   // ── COMBAT MODE ──────────────────────────────────────────────────────────
   if(p.inCombat){
-    const words=input.split(/\s+/),v=words[0];
     const m=p.enemy;
     if(!m||m.dead){p.inCombat=false;p.enemy=null;return;}
     if(v==='flee'||v==='run'){
@@ -1993,7 +1995,6 @@ function handleCmd(ws,p,raw){
   }
 
   // ── NORMAL MODE ──────────────────────────────────────────────────────────
-  const words=input.split(/\s+/),v=words[0],rest=words.slice(1).join(' ');
 
   if(DIRS[v]){
     const dir=DIRS[v],rm=world[p.room];
