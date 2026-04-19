@@ -419,6 +419,20 @@ function saveGuilds() { fs.writeFileSync(GUILD_FILE, JSON.stringify(guilds,null,
 loadGuilds();
 console.log('[Boot] Guilds loaded —', Object.keys(guilds).length, 'guilds');
 
+// Notice Board
+const notices = [];
+function addNotice(author,text){
+  notices.unshift({author,text,ts:new Date().toLocaleDateString()});
+  if(notices.length>20)notices.pop();
+  bAll({type:'line',text:'[Notice Board] '+author+': '+text,cls:'loot'});
+}
+function showBoard(ws){
+  say(ws,'=== Shadowmere Notice Board ========================','loot');
+  if(!notices.length)say(ws,'  Empty. POST [message] to add a notice.','sys');
+  else notices.forEach((n,i)=>say(ws,'  ['+(i+1)+'] '+n.author+' ('+n.ts+'): '+n.text,'sys'));
+  say(ws,'  POST [message] to pin a notice.  BOARD to view.','sys');
+}
+
 // ── Parties ───────────────────────────────────────────────────────────────
 const parties = new Map();
 let partySeq = 0;
@@ -1693,6 +1707,12 @@ function handleCmd(ws,p,raw){
     case'trade':tradeCmd(ws,p,rest);break;
     case'profile':showProfile(ws,p,p);break;
     case'bio':{if(!rest)return say(ws,'BIO [text]','err');p.bio=rest.slice(0,300);svc(p);say(ws,'Biography updated.','ok');break;}
+    case'board':case'notices':showBoard(ws);break;
+    case'post':{
+      if(!rest)return say(ws,'POST [message] to pin a notice on the board.','err');
+      if(rest.length>200)return say(ws,'Notice too long (max 200 chars).','err');
+      addNotice(p.name,rest);break;
+    }
     case'say':{if(!rest)return;say(ws,`You say: "${rest}"`,'chat');sayRoom(p.room,`${p.name} says: "${rest}"`,'chat',ws);break;}
     case'yell':case'shout':{if(!rest)return;bAll({type:'line',text:`${p.name} yells: "${rest}"`,cls:'chat'});break;}
     case'tell':case'whisper':{
@@ -1709,11 +1729,13 @@ function handleCmd(ws,p,raw){
 }
 
 function showProfile(ws,viewer,target){
+  const tGuild=target.guildId?guilds[target.guildId]:null;
   raw(ws,{type:'profile',name:target.name,raceName:target.raceName||'Unknown',className:target.className||'Unknown',
     level:target.level,hp:target.hp,maxhp:target.maxhp,atk:target.atk,def:target.def,
     gold:viewer.username===target.username?target.gold:null,xp:target.xp,xpNext:target.level*100,
     bio:target.bio||'',avatar:target.avatar||'',equipped:target.equipped||[],
     companion:target.companion?target.companion.name:null,zombieCount:(target.zombies||[]).length,
+    guildName:tGuild?tGuild.name:null,
     isSelf:viewer.username===target.username});
 }
 
@@ -1884,6 +1906,17 @@ wss.on('connection',ws=>{
       let raw2;try{raw2=data.toString().trim();}catch{return;}
       const p=sessions.get(ws);if(!p)return;
       if(!p.loggedIn){handleAuth(ws,p,raw2);return;}
+      // Handle JSON messages (avatar etc) without routing to handleCmd
+      if(raw2.startsWith('{')){
+        try{
+          const action=JSON.parse(raw2);
+          if(action.type==='set_avatar'){
+            if(action.data&&action.data.length<2200000){p.avatar=action.data;svc(p);raw(ws,{type:'avatar_saved',avatar:action.data});}
+            else say(ws,'Image too large.','err');
+          }else if(action.type==='clear_avatar'){p.avatar='';svc(p);raw(ws,{type:'avatar_saved',avatar:''});}
+        }catch(je){console.error('[JSON MSG]',je.message);}
+        return;
+      }
       handleCmd(ws,p,raw2);
       // Only save if fully logged in player with username
       if(p.loggedIn&&p.username)svc(p);
