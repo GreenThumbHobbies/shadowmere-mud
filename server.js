@@ -137,6 +137,45 @@ const MOB_PORTRAITS = {
   'Void Cultist':       'void_cultist.jpg',
   'Young Dragon':       'young_dragon.jpg',
   'Shadow Wraith':      'shadow_wraith.jpg',
+  // Void Sanctum
+  'Void God':           'void_god.jpg',
+  'Void Scholar':       'void_scholar.jpg',
+  'Null Horror':        'null_horror.jpg',
+  'Void Wraith':        'void_wraith.jpg',
+  // Astral Sea
+  'Astral Leviathan':   'astral_leviathan.jpg',
+  'Githyanki Pirate':   'githyanki.jpg',
+  'Plane Walker':       'plane_walker.jpg',
+  'Astral Shark':       'astral_shark.jpg',
+  // Crystal Caverns
+  'Crystal Golem':      'crystal_golem.jpg',
+  'Gem Spider':         'gem_spider.jpg',
+  'Diamond Guardian':   'diamond_guardian.jpg',
+  'Prism Titan':        'prism_titan.jpg',
+  // Shadow Realm
+  'Void Emperor':       'void_emperor.jpg',
+  'Dark Treant':        'dark_treant.jpg',
+  'Banshee':            'banshee.jpg',
+  'Nightmare Hound':    'nightmare_hound.jpg',
+  'Shadow Demon':       'shadow_demon.jpg',
+  // Sky Realm
+  'Storm God':          'storm_god.jpg',
+  'Stone Sentinel':     'stone_sentinel.jpg',
+  'Thunder Hawk':       'thunder_hawk.jpg',
+  'Wind Spirit':        'wind_spirit.jpg',
+  // Haunted Keep
+  'Death Baron':        'death_baron.jpg',
+  'Bone Horror':        'bone_horror.jpg',
+  'Chained Revenant':   'chained_revenant.jpg',
+  'Cursed Knight':      'cursed_knight.jpg',
+  'Wailing Specter':    'wailing_specter.jpg',
+  // Ashford Bandits
+  'Bandit King':        'bandit_king.jpg',
+  'Bandit Thug':        'bandit_thug.jpg',
+  'Bandit Scout':       'bandit_scout.jpg',
+  // Night creatures
+  'Night Horror':       'night_horror.jpg',
+  'Shadow Stalker':     'shadow_stalker.jpg',
   // Forest
   'Bog Witch':          'bog_witch.jpg',
   'Swamp Serpent':      'swamp_serpent.jpg',
@@ -210,9 +249,9 @@ function execSkill(ws, p, sid, m) {
     case 'alpha_call':      { const r=D(p.atk*2); const pd=p.companion?rnd(8,15):0; m.hp-=pd; say(ws,`ALPHA CALL — You:${r}${pd?'+'+pd:''}!`,'skill'); break; }
     case 'raise_dead':      { doRaiseDead(ws,p); break; }
     case 'corpse_bomb':     { if(!p.zombies||!p.zombies.length){say(ws,'No zombies!','err');break;} const z=p.zombies.pop(); const r=Math.max(8,z.hp*2+rnd(0,10)); m.hp-=r; say(ws,`CORPSE BOMB — ${z.name} explodes for ${r}!`,'skill'); break; }
-    case 'necrotic_bolt':   { const r=D(p.atk*2.5,3); const h=H(Math.floor(r/3)); say(ws,`NECROTIC BOLT — ${r} necrotic, +${h} HP!`,'skill'); break; }
-    case 'death_shield':    { p.sh.death=14;              say(ws,'DEATH SHIELD — 14 necrotic barrier!','skill'); break; }
-    case 'plague':          { p.plagueT=4;p.plagueD=5;    say(ws,'PLAGUE — 5 necrotic/turn for 4 turns!','skill'); break; }
+    case 'necrotic_bolt':   { const r=D(p.atk*2.5,3); const h=H(Math.floor(r/3)); say(ws,`NECROTIC BOLT — ${r} necrotic damage! Life drain: +${h} HP restored. [${p.hp}/${p.maxhp}]`,'skill'); break; }
+    case 'death_shield':    { p.sh.death=14; say(ws,'DEATH SHIELD — A 14-point necrotic barrier surrounds you. Next 14 damage absorbed!','skill'); break; }
+    case 'plague':          { p.plagueT=4;p.plagueD=5; say(ws,`PLAGUE — ${m.name} is infected! 5 necrotic damage per turn for 4 turns.`,'skill'); break; }
     case 'soul_drain':      { const r=D(p.atk*1.5); const h=H(Math.floor(r/2)); say(ws,`SOUL DRAIN — ${r} dmg, +${h} HP!`,'skill'); break; }
     case 'bone_wall':       { p.sh.bone=16;               say(ws,'BONE WALL — 16 damage barrier!','skill'); break; }
     case 'curse_skill':     { p.curseT=4;p.curseD=4; m.hp-=rnd(5,10); say(ws,'CURSE — Enemy weakened!','skill'); break; }
@@ -1139,12 +1178,18 @@ function doTame(ws, p) {
   if (rnd(1,100) <= chance) {
     const td = TAMEABLE[tgt.name];
     p.companion = {name:tgt.name, atk:td.atk, hp:td.hp, maxhp:td.hp};
-    tgt.dead = true;
-    say(ws, `✓ You tame the ${tgt.name}! A loyal companion joins you.`, 'ok');
+    // Don't kill — remove from room monsters peacefully (animal follows willingly)
+    const idx = (rm.monsters||[]).indexOf(tgt);
+    if(idx>=0) rm.monsters.splice(idx,1);
+    // End combat peacefully
+    p.inCombat=false; p.enemy=null;
+    say(ws, `You offer the treat slowly. The ${tgt.name} sniffs it... then nuzzles your hand.`, 'narrate');
+    say(ws, `✓ ${tgt.name} is now your loyal companion!`, 'ok');
     sayRoom(p.room, `${p.name} tames a ${tgt.name}!`, 'narrate', ws);
     checkAch(ws, p, 'tamer');
   } else {
-    say(ws, `The ${tgt.name} resists! Beast Treat consumed.`, 'err');
+    say(ws, `The ${tgt.name} sniffs the treat but backs away. Beast Treat consumed.`, 'err');
+    // On failure the animal is still alive — combat continues if in combat
   }
   sidebar(ws, p);
 }
@@ -1154,13 +1199,20 @@ function doRaiseDead(ws, p) {
   if (!p.zombies) p.zombies = [];
   if (p.zombies.length >= 3) return say(ws, 'Already control 3 zombies — maximum.', 'err');
   const rm = world[p.room];
-  const corpse = (rm.monsters||[]).find(m => m.dead);
-  if (!corpse) return say(ws, 'No fallen corpses here. Kill something first.', 'err');
-  const z = {name:`Zombie ${corpse.name}`, hp:Math.floor(corpse.maxhp*0.75), maxhp:Math.floor(corpse.maxhp*0.75), atk:Math.floor(corpse.atk*0.7)};
+  // Check corpse list first (preferred), fall back to dead monsters
+  if(!rm.corpses) rm.corpses=[];
+  const corpse = rm.corpses.find(c=>!c.raised) ||
+                 (rm.monsters||[]).find(m=>m.dead);
+  if (!corpse) return say(ws, 'No fallen corpses here. Kill something first, then use Raise Dead.', 'err');
+  // Mark as raised so it can't be raised twice
+  if(corpse.raised!==undefined) corpse.raised=true;
+  const z = {name:`Zombie ${corpse.name}`, hp:Math.floor((corpse.maxhp||20)*0.75), maxhp:Math.floor((corpse.maxhp||20)*0.75), atk:Math.floor((corpse.atk||5)*0.7)};
   p.zombies.push(z);
-  say(ws, `Dark energy surges. ${corpse.name} rises as your servant! [HP:${z.hp} ATK:${z.atk}]`, 'skill');
+  say(ws, `Dark energy surges through the fallen ${corpse.name}. It rises to serve you!`, 'skill');
+  say(ws, `  Zombie ${corpse.name} [HP:${z.hp} ATK:${z.atk}] added to your undead army.`, 'skill');
   sayRoom(p.room, `${p.name} raises ${corpse.name} from the dead!`, 'narrate', ws);
   if (p.zombies.length >= 3) checkAch(ws, p, 'necro');
+  sidebar(ws,p);
 }
 
 // ── Achievements ──────────────────────────────────────────────────────────
@@ -1272,6 +1324,14 @@ function killMonster(ws, p, m) {
   const bonus=(p.classId==='rogue'?rnd(1,12):0)+(p.raceId==='goblin'?rnd(1,8):0);
   const xpBonus=Math.floor(m.xp*getWeatherXPBonus());p.xp+=xpBonus; p.gold+=m.gold+bonus; p.killCount=(p.killCount||0)+1;
   say(ws, `+${m.xp} XP, +${m.gold+bonus} gold. [${p.killCount} kills]`, 'loot');
+  // Leave a corpse that can be raised
+  if(!world[p.room].corpses) world[p.room].corpses=[];
+  world[p.room].corpses.push({name:m.name,maxhp:m.maxhp,atk:m.atk,raised:false});
+  // Corpses decay after 10 minutes
+  setTimeout(()=>{
+    if(world[p.room]&&world[p.room].corpses)
+      world[p.room].corpses=world[p.room].corpses.filter(c=>c.name!==m.name||c.raised);
+  },600000);
   if (m.loot) {
     if(p.autoloot){
       p.inventory.push(m.loot);
