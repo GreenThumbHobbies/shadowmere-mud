@@ -839,8 +839,7 @@ function applyNightMonsters(){
 
 // Run every real hour
 setInterval(()=>{updateDayNight();applyNightMonsters();}, 60*60*1000);
-// Initial state
-updateDayNight();applyNightMonsters();
+// Initial call happens after sessions is defined (see bottom of file)
 
 function getTimeWeather(){return {hour:TIMES[gameHour],weather,isNight};}
 
@@ -863,6 +862,7 @@ function bRoom(rid, msg, excl=null) {
       ws.send(JSON.stringify(msg));
 }
 function bAll(msg) {
+  if(!sessions)return;
   for (const [ws, p] of sessions)
     if (p.loggedIn && ws.readyState===WS.OPEN)
       ws.send(JSON.stringify(msg));
@@ -2610,6 +2610,11 @@ wss.on('connection',ws=>{
   });
   ws.on('error',e=>console.error('[WS]',e.message));
 });
+
+// Initialize day/night after everything is loaded
+updateDayNight();
+applyNightMonsters();
+console.log('[Boot] Day/night initialized — time:',TIMES[gameHour],'weather:',weather);
 
 server.listen(PORT,'0.0.0.0',()=>{
   console.log('');
