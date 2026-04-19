@@ -119,7 +119,12 @@ const SK = {
 function execSkill(ws, p, sid, m) {
   const D = (base, bonus=0, nodef=false) => {
     const d = Math.max(1, Math.floor(base) - (nodef?0:m.def) + rnd(-1,bonus));
-    m.hp -= d; return d;
+    m.hp -= d;
+    return d;
+  };
+  // Helper to show HP after skill damage
+  const showHP = () => {
+    if(m&&m.hp!==undefined) say(ws,`  ${m.name}: ${Math.max(0,m.hp)}/${m.maxhp} HP remaining`,'combat');
   };
   const H = n => { const h=Math.min(n,p.maxhp-p.hp); p.hp+=h; return h; };
   if (!p.cd) p.cd = {};
@@ -234,10 +239,40 @@ function execSkill(ws, p, sid, m) {
     case 'overload':        { const r=D(p.atk*3.5,6); p.hp=Math.max(1,p.hp-6); say(ws,`OVERLOAD — ${r} explosion! -6 HP.`,'skill'); break; }
     case 'elemental_form':  { if(!p._elementalActive){p.atk+=5;p._elementalActive=true;} p.elementalT=4; say(ws,'ELEMENTAL FORM — ATK +5 for 4 turns!','skill'); break; }
   }
+  // Show monster HP after any damaging skill
+  if(m && m.hp!==undefined && sid!=='smoke_bomb' && sid!=='track' && sid!=='brew' && sid!=='pickpocket') {
+    say(ws,`  ${m.name}: ${Math.max(0,m.hp)}/${m.maxhp} HP remaining`,'combat');
+  }
 }
 
 // ── Equippable items ──────────────────────────────────────────────────────
 const EQ = {
+  // Bags / containers — equip to get extra carry slots
+  'worn satchel':   {t:'bag',atk:0,def:0,slots:6,  desc:'A battered leather satchel. Holds 6 items.'},
+  'leather satchel':{t:'bag',atk:0,def:0,slots:10, desc:'A sturdy leather satchel. Holds 10 items.'},
+  'traveller bag':  {t:'bag',atk:0,def:0,slots:12, desc:'A spacious traveller bag. Holds 12 items.'},
+  'merchant sack':  {t:'bag',atk:0,def:0,slots:15, desc:'A large merchant sack. Holds 15 items.'},
+  'magic satchel':  {t:'bag',atk:0,def:0,slots:20, desc:'A satchel with magical extra-dimensional space. Holds 20 items.'},
+  // ── Quest reward weapons ───────────────────────────────────────────────
+  "knight's sword":   {t:'weapon',atk:10,def:0, desc:"A finely balanced sword."},
+  'bone staff':       {t:'weapon',atk:10,def:1, desc:"A staff carved from dungeon bones."},
+  // ── Boss drop weapons ────────────────────────────────────────────────────
+  'silver sword':     {t:'weapon',atk:12,def:1, desc:"Githyanki silver, never dulls."},
+  'cursed blade':     {t:'weapon',atk:14,def:0, desc:"Radiates dark energy. Unsettling."},
+  'frost blade':      {t:'weapon',atk:14,def:2, desc:"Permanently cold. Slows enemies."},
+  // ── Boss drop armor ──────────────────────────────────────────────────────
+  'cultist robe':     {t:'armor', atk:2, def:1, desc:"Dark cloth stitched with runes."},
+  // ── Legendary boss crowns / trophies (wearable) ──────────────────────────
+  "lich's crown":     {t:'armor', atk:3, def:5, desc:"The Dungeon Lich's iron crown. Radiates dark power. Intimidates all who see it."},
+  "titan's core":     {t:'trinket',atk:5,def:3, desc:"The Flame Titan's molten heart. Burns cold in your hand."},
+  "frost queen's crown":{t:'armor',atk:2,def:6, desc:"Ice crown of the Frost Queen. Bitter cold, beautiful."},
+  "storm god's aegis":{t:'armor', atk:0,def:8, desc:"Divine shield of the Storm God. Lightning crackles across its surface."},
+  "void emperor's sigil":{t:'trinket',atk:6,def:4,desc:"The Void Emperor's seal. Reality wavers around it."},
+  "prism titan's core":{t:'trinket',atk:5,def:5,desc:"A crystalline core that refracts all light."},
+  "death baron's crown":{t:'armor',atk:4,def:7, desc:"The Death Baron's iron crown. Commands respect — and fear."},
+  "leviathan's scale": {t:'armor', atk:2,def:9, desc:"Astral dragon scale. Near impenetrable."},
+  "void god's essence":{t:'trinket',atk:8,def:6, desc:"The essence of the Void God. Terrible, beautiful power."},
+  // ── Craftable items already registered above ─────────────────────────────
   'silver ring':{t:'armor',atk:0,def:1},"ranger's bow":{t:'weapon',atk:6,def:0},
   'forest cloak':{t:'armor',atk:0,def:3},'enchanted gem':{t:'trinket',atk:2,def:2},
   'rusty sword':{t:'weapon',atk:2,def:0},'iron sword':{t:'weapon',atk:4,def:0},
@@ -255,6 +290,7 @@ const EQ = {
 // ── Shops ─────────────────────────────────────────────────────────────────
 const SHOPS = {
   weaponsmith:{name:"Grimwald's Weaponsmith",greet:"Grimwald grunts. 'Fine steel. Fair prices.'",items:[
+    {name:'Worn Satchel',cost:20,t:'bag',slots:6},{name:'Leather Satchel',cost:60,t:'bag',slots:10},{name:'Traveller Bag',cost:120,t:'bag',slots:12},
     {name:'Rusty Sword',cost:10,t:'weapon',atk:2,def:0},{name:'Iron Sword',cost:30,t:'weapon',atk:4,def:0},
     {name:'Battle Axe',cost:60,t:'weapon',atk:7,def:-1},{name:"Knight's Sword",cost:120,t:'weapon',atk:10,def:0},
     {name:'Shadow Blade',cost:250,t:'weapon',atk:15,def:2},{name:'Leather Armor',cost:25,t:'armor',atk:0,def:2},
@@ -268,6 +304,7 @@ const SHOPS = {
     {name:'beast treat',cost:15,t:'item'}
   ]},
   black_market:{name:'The Shadow Broker',greet:"'No questions. No receipts.'",items:[
+    {name:'Merchant Sack',cost:200,t:'bag',slots:15},{name:'Magic Satchel',cost:500,t:'bag',slots:20},
     {name:'Envenomed Dagger',cost:200,t:'weapon',atk:12,def:0},{name:'Void Cloak',cost:180,t:'armor',atk:2,def:5},
     {name:'Elixir of Power',cost:300,t:'tonic',atk:8},{name:'Elixir of Stone',cost:300,t:'tonic',def:8},
     {name:'Phoenix Draught',cost:150,t:'potion',heal:9999}
@@ -478,7 +515,7 @@ function svc(p) {
     bio:p.bio||'', avatar:p.avatar||'', achievements:p.achievements||[],
     killCount:p.killCount||0, craftCount:p.craftCount||0,
     zonesVisited:p.zonesVisited||[], guildId:p.guildId||'',
-    quests:p.quests||{}, isAdmin:p.isAdmin||false
+    quests:p.quests||{}, isAdmin:p.isAdmin||false, bagContents:p.bagContents||{}
   }, null, 2));
   }catch(e){console.error('[SAVE ERROR]',e.message);}
 }
@@ -493,7 +530,7 @@ const RTDEF = {
   deathmarkT:0, elementalT:0, _elementalActive:false,
   catalystT:0, _catalystActive:false, inspireT:0, _inspireActive:false,
   _darkPactActive:false, _arcaneBladeActive:false,
-  regenTimer:180, bio:'', avatar:'', achievements:[], killCount:0,
+  regenTimer:180, bio:'', avatar:'', achievements:[], killCount:0, bagContents:{},
   craftCount:0, zonesVisited:[], guildId:'', quests:{}, isAdmin:false,
   companion:null, zombies:[]
 };
@@ -546,9 +583,16 @@ console.log('[Boot] Admin ready');
 // ── Equip helpers ─────────────────────────────────────────────────────────
 function doEquip(p, name, silent) {
   const k = name.toLowerCase(), st = EQ[k];
-  if (!st || p.equipped.includes(name)) return false;
-  const old = p.equipped.find(e => EQ[e.toLowerCase()]&&EQ[e.toLowerCase()].t===st.t);
-  if (old) doUnequip(p, old, true);
+  if (!st) return false;
+  if (p.equipped.includes(name)) return false;
+  // Bags don't replace other items — multiple bags allowed
+  if (st.t !== 'bag') {
+    const old = p.equipped.find(e => {
+      const es = EQ[e.toLowerCase()];
+      return es && es.t === st.t;
+    });
+    if (old) doUnequip(p, old, true);
+  }
   p.equipped.push(name);
   p.inventory = p.inventory.filter(i => i !== name);
   p.atk += (st.atk||0); p.def += (st.def||0);
@@ -595,7 +639,7 @@ function sidebar(ws, p) {
   raw(ws, {
     type:'sidebar', name:p.isAdmin?p.name+' ★':p.name,
     className:p.className, raceName:p.raceName||'', level:p.level,
-    hp:p.hp, maxhp:p.maxhp, xp:p.xp, xpNext:p.level*100,
+    hp:p.hp, maxhp:p.maxhp, xp:p.xp, xpNext:p.level*500,
     gold:p.gold, atk:p.atk, def:p.def,
     room:world[p.room]?.name||p.room, zone:world[p.room]?.zone||'',
     equipped:p.equipped, inventory:p.inventory, skills,
@@ -730,9 +774,9 @@ function checkAch(ws, p, id) {
 
 // ── Level up ──────────────────────────────────────────────────────────────
 function levelUp(ws, p) {
-  while (p.xp >= p.level*100) {
-    p.level++; p.maxhp+=12; p.hp=p.maxhp; p.atk+=2;
-    say(ws, `★ LEVEL UP! Level ${p.level}! HP restored. ATK +2. ★`, 'ok');
+  while (p.xp >= p.level*500) {
+    p.level++; p.maxhp+=12; p.hp=p.maxhp; p.atk+=2; p.def+=1;
+    say(ws, `★ LEVEL UP! Level ${p.level}! HP restored. ATK +2, DEF +1. ★`, 'ok');
     if(p.level>=5)checkAch(ws,p,'level5');
     if(p.level>=10)checkAch(ws,p,'level10');
     if(p.level>=20)checkAch(ws,p,'level20');
@@ -789,7 +833,12 @@ function killMonster(ws, p, m) {
   const bonus=(p.classId==='rogue'?rnd(1,12):0)+(p.raceId==='goblin'?rnd(1,8):0);
   p.xp+=m.xp; p.gold+=m.gold+bonus; p.killCount=(p.killCount||0)+1;
   say(ws, `+${m.xp} XP, +${m.gold+bonus} gold. [${p.killCount} kills]`, 'loot');
-  if (m.loot) { world[p.room].items.push(m.loot); say(ws,`Dropped: ${m.loot}`,'loot'); }
+  if (m.loot) {
+    world[p.room].items.push(m.loot);
+    say(ws,`Dropped: ${m.loot}`,'loot');
+    const eqDrop=EQ[m.loot.toLowerCase()];
+    if(eqDrop)say(ws,`  [${eqDrop.t.toUpperCase()}] ATK+${eqDrop.atk} DEF+${eqDrop.def} — TAKE it then EQUIP ${m.loot}`,'loot');
+  }
   // Party XP share
   const party = getParty(p.username);
   if (party && party.members.size>1) {
@@ -943,6 +992,8 @@ function finishQuest(ws,p,qid){
   if(q.reward.item){
     p.inventory.push(q.reward.item);
     say(ws,`  Received: ${q.reward.item}!`,'loot');
+    const eqItem=EQ[q.reward.item.toLowerCase()];
+    if(eqItem)say(ws,`  Type EQUIP ${q.reward.item} to use it.`,'sys');
     // Consume fetch/gather items
     if(q.check.toString().includes('satchel')||q.check.toString().includes('rune')||q.check.toString().includes('feather')){
       const targets=["Aldwyn's satchel",'ancient rune','storm feather'];
@@ -1319,7 +1370,7 @@ function adminCmd(ws,p,raw){
       if(!tn||isNaN(lvl))return say(ws,'Usage: /sl [player] [level]','err');
       const tgt=[...sessions.values()].find(x=>x.loggedIn&&x.name&&x.name.toLowerCase()===tn.toLowerCase());
       if(!tgt)return say(ws,`${tn} not online.`,'err');
-      tgt.level=lvl;tgt.maxhp=30+lvl*12;tgt.hp=tgt.maxhp;tgt.xp=0;svc(tgt);sidebar(tgt.ws,tgt);
+      tgt.level=lvl;tgt.maxhp=30+lvl*12;tgt.hp=tgt.maxhp;tgt.atk=CLASSES[tgt.classId]?.atk+RACES[tgt.raceId]?.atk+(lvl-1)*2||tgt.atk;tgt.def=CLASSES[tgt.classId]?.def+RACES[tgt.raceId]?.def+(lvl-1)||tgt.def;tgt.xp=0;svc(tgt);sidebar(tgt.ws,tgt);
       say(ws,`✓ Set ${tgt.name} to Level ${lvl}.`,'ok');say(tgt.ws,`✨ Your level was set to ${lvl}!`,'loot');break;
     }
     case'/heal':{
@@ -1460,7 +1511,7 @@ function handleCmd(ws,p,raw){
       const res=execSkill(ws,p,sid,m);
       p.cd[sid]=SK[sid].cd;
       if(res==='fled'){sidebar(ws,p);return;}
-      if(m.dead)return killMonster(ws,p,m);
+      if(m.hp<=0||m.dead)return killMonster(ws,p,m);
       if(!p.inCombat){sidebar(ws,p);return;}
       monsterAttack(ws,p,m);sidebar(ws,p);return;
     }
@@ -1472,7 +1523,7 @@ function handleCmd(ws,p,raw){
       if(!p.cd)p.cd={};
       const res=execSkill(ws,p,sid,m);p.cd[sid]=SK[sid].cd;
       if(res==='fled'){sidebar(ws,p);return;}
-      if(m.dead)return killMonster(ws,p,m);
+      if(m.hp<=0||m.dead)return killMonster(ws,p,m);
       if(!p.inCombat){sidebar(ws,p);return;}
       monsterAttack(ws,p,m);sidebar(ws,p);
     }else say(ws,'ATTACK / FLEE / USE [item] / SKILL [name]','sys');
@@ -1517,7 +1568,14 @@ function handleCmd(ws,p,raw){
         if(tgt){showProfile(ws,p,tgt);break;}
         const allItems=[...p.inventory,...(world[p.room]?.items||[]),...p.equipped];
         const f=allItems.find(i=>i.toLowerCase().includes(rest));
-        if(f){const st=EQ[f.toLowerCase()];say(ws,`${f}: ${st?`(${st.t}) ATK${st.atk>=0?'+':''}${st.atk} DEF${st.def>=0?'+':''}${st.def}`:'A useful item.'}`,'narrate');break;}
+        if(f){
+          const st=EQ[f.toLowerCase()];
+          if(st){
+            const desc=st.desc?` "${st.desc}"`:'';
+            say(ws,`${f} [${st.t.toUpperCase()}] ATK:${st.atk>=0?'+':''}${st.atk} DEF:${st.def>=0?'+':''}${st.def}${desc}`,'narrate');
+          }else{say(ws,`${f}: A useful item.`,'narrate');}
+          break;
+        }
       }
       describeRoom(ws,p);break;
     }
@@ -1525,7 +1583,11 @@ function handleCmd(ws,p,raw){
       const rm=world[p.room];if(!rm)break;
       const idx=(rm.items||[]).findIndex(i=>i.toLowerCase().includes(rest));
       if(idx===-1)return say(ws,`No '${rest}' here.`,'err');
-      const it=rm.items.splice(idx,1)[0];p.inventory.push(it);say(ws,`You pick up the ${it}.`,'ok');sidebar(ws,p);break;
+      const it=rm.items.splice(idx,1)[0];p.inventory.push(it);
+      say(ws,`You pick up the ${it}.`,'ok');
+      const eqCheck=EQ[it.toLowerCase()];
+      if(eqCheck)say(ws,`  [${eqCheck.t.toUpperCase()}] ATK+${eqCheck.atk} DEF+${eqCheck.def} — type EQUIP ${it} to use it.`,'sys');
+      sidebar(ws,p);break;
     }
     case'drop':{
       const idx=p.inventory.findIndex(i=>i.toLowerCase().includes(rest));
@@ -1645,10 +1707,72 @@ function handleCmd(ws,p,raw){
     }
     case'shrine':showShrine(ws,p);break;
     case'teleport':case'tp':doTeleport(ws,p,rest);break;
+    case'bag':case'openb':case'pack':{
+      // Find equipped bag
+      const myBag=p.equipped.find(e=>EQ[e.toLowerCase()]&&EQ[e.toLowerCase()].t==='bag');
+      if(!myBag)return say(ws,'No bag equipped. Buy one at the Weaponsmith and EQUIP it.','err');
+      const bk=EQ[myBag.toLowerCase()];
+      const bagContents=p.bagContents||(p.bagContents={});
+      const contents=bagContents[myBag]||[];
+      say(ws,`=== ${myBag} (${contents.length}/${bk.slots} slots) ===`,'loot');
+      if(!contents.length)say(ws,'  Empty.','sys');
+      else contents.forEach((item,i)=>say(ws,`  [${i+1}] ${item}`,'sys'));
+      say(ws,'  PUT [item] IN BAG  |  TAKE [item] FROM BAG  |  BAG CAPACITY: '+bk.slots+' slots','sys');
+      break;
+    }
+    case'put':{
+      // PUT [item] IN BAG
+      if(!rest.toLowerCase().includes(' in '))return say(ws,'Usage: PUT [item] IN BAG','err');
+      const[itemQ,bagQ]=rest.toLowerCase().split(' in ');
+      const myBag=p.equipped.find(e=>EQ[e.toLowerCase()]&&EQ[e.toLowerCase()].t==='bag'&&e.toLowerCase().includes(bagQ.trim()));
+      if(!myBag)return say(ws,'No matching bag equipped.','err');
+      const bk=EQ[myBag.toLowerCase()];
+      if(!p.bagContents)p.bagContents={};
+      if(!p.bagContents[myBag])p.bagContents[myBag]=[];
+      const contents=p.bagContents[myBag];
+      if(contents.length>=bk.slots)return say(ws,`${myBag} is full! (${bk.slots}/${bk.slots} slots)`,'err');
+      const idx=p.inventory.findIndex(i=>i.toLowerCase().includes(itemQ.trim()));
+      if(idx===-1)return say(ws,"You don't have that item in your main inventory.",'err');
+      const item=p.inventory.splice(idx,1)[0];
+      contents.push(item);
+      say(ws,`You put the ${item} in your ${myBag}. (${contents.length}/${bk.slots} slots)`,'ok');
+      sidebar(ws,p);break;
+    }
+    case'take':{
+      // TAKE [item] FROM BAG
+      if(rest.toLowerCase().includes(' from ')){
+        const[itemQ,bagQ]=rest.toLowerCase().split(' from ');
+        const myBag=p.equipped.find(e=>EQ[e.toLowerCase()]&&EQ[e.toLowerCase()].t==='bag'&&e.toLowerCase().includes(bagQ.trim()));
+        if(!myBag)return say(ws,'No matching bag equipped.','err');
+        if(!p.bagContents||!p.bagContents[myBag]||!p.bagContents[myBag].length)return say(ws,'That bag is empty.','err');
+        const idx=p.bagContents[myBag].findIndex(i=>i.toLowerCase().includes(itemQ.trim()));
+        if(idx===-1)return say(ws,"That item isn't in that bag.",'err');
+        const item=p.bagContents[myBag].splice(idx,1)[0];
+        p.inventory.push(item);
+        say(ws,`You take the ${item} from your ${myBag}.`,'ok');
+        sidebar(ws,p);break;
+      }
+      // TAKE from room (existing)
+      const rm2=world[p.room];if(!rm2)break;
+      const ri=( rm2.items||[]).findIndex(i=>i.toLowerCase().includes(rest));
+      if(ri===-1)return say(ws,`No '${rest}' here.`,'err');
+      const it2=rm2.items.splice(ri,1)[0];p.inventory.push(it2);say(ws,`You pick up the ${it2}.`,'ok');sidebar(ws,p);break;
+    }
     case'inventory':case'inv':case'i':{
       if(!p.inventory.length&&!p.equipped.length)return say(ws,'Empty.','sys');
       if(p.inventory.length)say(ws,'Pack: '+p.inventory.join(', '),'sys');
-      if(p.equipped.length)say(ws,'Equipped: '+p.equipped.join(', '),'sys');break;
+      if(p.equipped.length){
+        say(ws,'Equipped: '+p.equipped.join(', '),'sys');
+        // Show bag summaries
+        p.equipped.forEach(e=>{
+          const bk=EQ[e.toLowerCase()];
+          if(bk&&bk.t==='bag'){
+            const bc=(p.bagContents||{})[e]||[];
+            say(ws,`  ${e}: ${bc.length}/${bk.slots} slots used${bc.length?' — '+bc.slice(0,3).join(', ')+(bc.length>3?'...':''):' (empty)'}  [type BAG to open]`,'sys');
+          }
+        });
+      }
+      break;
     }
     case'stats':case'score':{
       say(ws,`─── ${p.name} ── ${p.raceName||''} ${p.className} ── Level ${p.level} ───`,'sys');
