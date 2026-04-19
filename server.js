@@ -2070,7 +2070,7 @@ function handleCmd(ws,p,raw){
       say(ws,`You flee ${dir}!`,'narrate');describeRoom(ws,p);sidebar(ws,p);return;
     }
     if(v==='use'){
-      const q=words.slice(1).join(' ');
+      const q=_words.slice(1).join(' ');
       const name=p.inventory.find(i=>i.toLowerCase().includes(q));
       if(!name)return say(ws,"You don't have that.",'err');
       if(!useConsumable(ws,p,name))return say(ws,"Can't use that in combat.",'err');
@@ -2081,7 +2081,7 @@ function handleCmd(ws,p,raw){
     const cls=CLASSES[p.classId];
     const allSkills=[...(cls?.skills||[]),...(p.extraSkills||[])];const findSid=q=>allSkills.find(s=>{const sk=SK[s];return sk&&(sk.n.toLowerCase().includes(q)||s===q.replace(/ /g,'_'));});
     if(v==='skill'||v==='cast'){
-      const sid=findSid(words.slice(1).join(' '));
+      const sid=findSid(_words.slice(1).join(' '));
       if(!sid)return say(ws,'Unknown skill. Type SKILLS.','err');
       const cd=(p.cd||{})[sid]||0;if(cd>0)return say(ws,`${SK[sid].n} on cooldown: ${cd} turns.`,'err');
       if(!p.cd)p.cd={};
@@ -2136,9 +2136,30 @@ function handleCmd(ws,p,raw){
         });
       }
     }
-    // Auto-engage
+    // Auto-engage — 30% chance monsters attack on entry
     const hostiles=(world[p.room]?.monsters||[]).filter(m=>!m.dead);
-    if(hostiles.length){p.inCombat=true;p.enemy=hostiles[0];say(ws,`A ${hostiles[0].name} lunges at you!`,'combat');say(ws,'ATTACK / FLEE / SKILL [name]','sys');}
+    if(hostiles.length){
+      if(rnd(1,100)<=30){
+        // Monster attacks!
+        p.inCombat=true;p.enemy=hostiles[0];
+        say(ws,`The ${hostiles[0].name} snarls and lunges at you!`,'combat');
+        say(ws,'ATTACK / FLEE / SKILL [name]  — or try to LOOK at it first.','sys');
+        // Send portrait
+        const _ap=MOB_PORTRAITS[hostiles[0].name];
+        if(_ap)raw(ws,{type:'mob_portrait',name:hostiles[0].name,img:'/monsters/'+_ap,hp:hostiles[0].hp,maxhp:hostiles[0].maxhp,atk:hostiles[0].atk,def:hostiles[0].def});
+      }else{
+        // Monster is present but not attacking — player can look or choose to engage
+        const _idleLines=[
+          `A ${hostiles[0].name} watches you warily.`,
+          `A ${hostiles[0].name} paces nearby, not yet attacking.`,
+          `A ${hostiles[0].name} eyes you with suspicion but holds back.`,
+          `A ${hostiles[0].name} growls low — it hasn't attacked yet.`,
+          `A ${hostiles[0].name} is here. It hasn't noticed you yet.`
+        ];
+        say(ws,_idleLines[rnd(0,_idleLines.length-1)],'narrate');
+        say(ws,`ATTACK to engage, or LOOK ${hostiles[0].name.split(' ')[0].toLowerCase()} to examine it.`,'sys');
+      }
+    }
     return;
   }
 
@@ -2148,6 +2169,9 @@ function handleCmd(ws,p,raw){
         // Check for NPC in room first
         const npcMatch=Object.values(NPCS).find(n=>n.room===p.room&&n.name.toLowerCase().includes(rest.toLowerCase()));
         if(npcMatch){showNPCProfile(ws,npcMatch);break;}
+        // Check for monster in room
+        const mobMatch=(world[p.room]?.monsters||[]).find(m=>!m.dead&&m.name.toLowerCase().includes(rest.toLowerCase()));
+        if(mobMatch){showMobProfile(ws,mobMatch);break;}
         const tgt=[...sessions.values()].find(x=>x.loggedIn&&x.name&&x.name.toLowerCase()===rest.toLowerCase());
         if(tgt){showProfile(ws,p,tgt);break;}
         const allItems=[...p.inventory,...(world[p.room]?.items||[]),...p.equipped];
@@ -2489,6 +2513,85 @@ function handleCmd(ws,p,raw){
     case'help':showHelp(ws,p);break;
     default:say(ws,`Unknown command '${v}'. Type HELP.`,'err');
   }
+}
+
+// Monster descriptions
+const MOB_DESCS = {
+  "Giant Rat":"A large diseased rat the size of a cat. Red eyes, matted fur, yellowed teeth. Aggressive despite its size.",
+  "Timber Wolf":"A lean grey wolf with pale intelligent eyes. Moves in silence. Likely has packmates nearby.",
+  "Forest Troll":"A hulking creature covered in moss and bark-like skin. Knuckles drag the ground. Surprisingly fast.",
+  "Stone Golem":"An ancient construct of mossy limestone, animated by forgotten magic. Glowing orange eyes. Slow but devastating.",
+  "Swamp Serpent":"A massive bog serpent, mottled brown and green, venom dripping from curved fangs. Coiled and ready.",
+  "Bog Witch":"A twisted old woman of the swamp. Wild hair tangled with weeds, gnarled staff, a grin that does not mean well.",
+  "Skeleton Warrior":"An animated skeleton in rusted armour, sword raised. Empty eye sockets glow with cold blue fire.",
+  "Armored Skeleton":"A heavier skeleton in better-preserved plate. More imposing than its lesser kin. Moves with purpose.",
+  "Risen Corpse":"A shambling undead in rotted dungeon clothing. It does not think. It only approaches.",
+  "Risen Cultist":"A robed undead, cult markings still visible on decayed flesh. Fingers curled around nothing.",
+  "Crypt Lich":"A minor lich in burial robes, gold crown on a skull face. Dark energy crackles between its fingers.",
+  "Prison Guard Ghost":"The translucent spirit of a dungeon guard, still in partial armour, chains dragging eternally behind it.",
+  "Corrupt Priest":"A former priest, now undead. Torn holy robes. The symbols of faith it once wore now burn dark on its skin.",
+  "Shadow Wraith":"A barely-visible dark form. Shifting at the edges. Only the glowing eyes give it any definition.",
+  "Young Dragon":"Not fully grown, but still filling the chamber. Stone-grey scales, burning amber eyes, smoke curling from its nostrils.",
+  "Void Cultist":"A living cultist in dark robes covered in void symbols. Violet energy crackling between both hands.",
+  "Void Archon":"Taller and more powerful than a common cultist. Partially transformed, void energy consuming part of its body.",
+  "Lich's Champion":"Massive armoured undead warrior in black plate. Red rune-light pulses along its armour. The Lich trusts it absolutely.",
+  "Dungeon Lich":"The Dungeon Lich sits on a throne of bones. Iron crown. Cold blue fire in hollow eye sockets. Ancient and terrible. This is what you came for.",
+  "Fire Elemental":"A living column of flame shaped like a humanoid. No face, just heat and light and hunger.",
+  "Lava Golem":"A hulking construct of cooled and molten rock. Orange cracks of fresh lava run across its surface.",
+  "Fire Imp":"Small, red, winged, and absolutely delighted to see you. Its grin is wider than its face should allow.",
+  "Rock Wyrm":"A serpentine creature of stone and magma. No legs. Burrows through solid rock as if it were water.",
+  "Flame Titan":"A fusion of molten rock and pure fury, compressed into a giant form. The ground cracks beneath each step.",
+  "Frost Wolf":"Larger than a Timber Wolf. White-blue fur. Breath crystallizes in the air. Ice crystals in its coat.",
+  "Ice Wraith":"A ghost-like figure of ice and frozen wind. Barely visible against the snow. Very fast.",
+  "Yeti":"Massive white-furred ape-like creature. Enormous, shaggy. Its eyes suggest more intelligence than you would prefer.",
+  "Ice Shard Golem":"A construct made of jagged ice shards with razor edges. Each movement sends splinters flying.",
+  "Frost Knight":"A human warrior in ice-encrusted armour. Serves the Frost Queen. Blade permanently frozen solid.",
+  "Frost Queen":"Regal and encased in living ice. Crown of icicles. Pale blue eyes, completely emotionless. Beautiful and lethal.",
+  "Wind Spirit":"Made of moving air, barely visible. It trails disturbed clouds wherever it drifts.",
+  "Thunder Hawk":"An eagle with a wingspan that fills the sky. Lightning crackles through every feather.",
+  "Stone Sentinel":"An ancient gargoyle-like guardian that has been floating here for centuries. It is awake now.",
+  "Storm God":"Not entirely physical. Storm clouds form its body. Lightning is its blood. It has noticed you.",
+  "Shadow Demon":"Pure shadow given form. Clawed hands, glowing red eyes, constantly shifting.",
+  "Nightmare Hound":"A black dog with no eyes. Mouth too wide. It runs on shadow instead of ground.",
+  "Banshee":"A wailing female spirit with wild hair and flowing robes. Her mouth is open in a scream that has lasted centuries.",
+  "Dark Treant":"A black leafless tree that walks. Ancient, twisted, shadow pouring from cracks in its bark.",
+  "Void Emperor":"A robed figure on a throne of darkness. Face hidden. Void energy consuming everything around it.",
+  "Crystal Golem":"A humanoid of pure crystal. Refracts light in dazzling patterns. Razor-sharp edges everywhere.",
+  "Gem Spider":"A large spider with a gemstone abdomen that catches all light. Its legs are like needles.",
+  "Diamond Guardian":"A nearly transparent crystal construct. Almost invisible until it moves.",
+  "Prism Titan":"A colossal crystal being that refracts all light into blinding rainbows. Looking at it is difficult.",
+  "Wailing Specter":"A howling ghost in tattered noble clothing. Its face is twisted in eternal anguish.",
+  "Cursed Knight":"An armoured undead in blackened plate. Its blade drains life with every cut.",
+  "Chained Revenant":"An undead prisoner still wearing its chains. Dragging them as it moves toward you.",
+  "Bone Horror":"Assembled from the bones of multiple creatures. Wrong proportions. Too many limbs.",
+  "Death Baron":"A skeletal lord in decayed finery. Crown, throne, commanding posture. It ruled here in life and refuses to accept otherwise.",
+  "Astral Shark":"A shark-like creature swimming through silver astral light instead of water.",
+  "Plane Walker":"A humanoid traveller between planes, partially phased in and out of reality.",
+  "Githyanki Pirate":"Tall and gaunt with silver armour and a blade that glows with planar energy.",
+  "Astral Leviathan":"Impossibly large. A sea-serpent made of astral energy. It circles the vortex and has done so since before your world existed.",
+  "Void Wraith":"Shadow from beyond existence. Even less defined than a Shadow Demon. Almost nothing at all.",
+  "Null Horror":"An entity of pure void. Looking at it feels wrong. Reality bends around it.",
+  "Void Scholar":"Robed, still reading. Half-consumed by the void it studied. Still reading.",
+  "Void God":"Presence more than form. The void given terrible consciousness. You should not be here.",
+  "Bandit Scout":"A lean outlaw in mismatched leather armour. Dagger in one hand, crossbow ready.",
+  "Bandit Thug":"A larger meaner bandit. Scarred face, crude weapons, absolutely itching for an excuse.",
+  "Bandit King":"Self-styled king in stolen finery layered over bandit armour. Overconfident grin. Dangerous.",
+  "Shadow Stalker":"A predator that hunts only at night. Low to the ground, multiple dark limbs. Completely silent.",
+  "Night Horror":"Something that should not exist in daylight. Formless in darkness. You catch glimpses."
+}
+
+function showMobProfile(ws, mob){
+  const portrait = MOB_PORTRAITS[mob.name];
+  const desc = MOB_DESCS[mob.name] || 'A dangerous creature lurking in the shadows.';
+  raw(ws,{
+    type:'mob_profile',
+    name:mob.name,
+    hp:mob.hp, maxhp:mob.maxhp,
+    atk:mob.atk, def:mob.def,
+    xp:mob.xp, gold:mob.gold,
+    desc:desc,
+    img: portrait ? '/monsters/'+portrait : null
+  });
 }
 
 function showNPCProfile(ws,npc){
