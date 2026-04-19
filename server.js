@@ -988,7 +988,7 @@ function svc(p) {
     bio:p.bio||'', avatar:p.avatar||'', achievements:p.achievements||[],
     killCount:p.killCount||0, craftCount:p.craftCount||0,
     zonesVisited:p.zonesVisited||[], guildId:p.guildId||'',
-    quests:p.quests||{}, isAdmin:p.isAdmin||false, bagContents:p.bagContents||{}, autoloot:!!p.autoloot, aliases:p.aliases||{}, extraSkills:p.extraSkills||[]
+    quests:p.quests||{}, isAdmin:p.isAdmin||false, bagContents:p.bagContents||{}, autoloot:!!p.autoloot, aliases:p.aliases||{}, extraSkills:p.extraSkills||[], companions:(p.companions||[]).filter(c=>c)
   }, null, 2));
   }catch(e){console.error('[SAVE ERROR]',e.message);}
 }
@@ -1005,7 +1005,7 @@ const RTDEF = {
   _darkPactActive:false, _arcaneBladeActive:false,
   regenTimer:900, bio:'', avatar:'', achievements:[], killCount:0, bagContents:{}, autoloot:false, aliases:{}, extraSkills:[],
   craftCount:0, zonesVisited:[], guildId:'', quests:{}, isAdmin:false,
-  companion:null, zombies:[]
+  companion:null, zombies:[], companions:[], pendingSpec:null
 };
 
 function newPlayer(user, pw, name, raceId, classId) {
@@ -1027,7 +1027,71 @@ function newPlayer(user, pw, name, raceId, classId) {
   });
   return p;
 }
-function hydrate(data) { return Object.assign({...RTDEF, companion:null, zombies:[]}, data); }
+function hydrate(data) {
+  // Merge saved data over defaults — ensures all new fields exist
+  const p = Object.assign({...RTDEF, companion:null, zombies:[]}, data);
+
+  // ── MIGRATIONS — patch old saves with new required fields ────────────────
+
+  // companions array (added v10.1)
+  if(!p.companions) p.companions = p.companion ? [p.companion] : [];
+
+  // autoloot, aliases, extraSkills (added v10.1)
+  if(p.autoloot===undefined) p.autoloot = false;
+  if(!p.aliases) p.aliases = {};
+  if(!p.extraSkills) p.extraSkills = [];
+
+  // bagContents (added v10.1)
+  if(!p.bagContents) p.bagContents = {};
+
+  // killCount, craftCount, zonesVisited (added v10.1)
+  if(!p.killCount) p.killCount = 0;
+  if(!p.craftCount) p.craftCount = 0;
+  if(!p.zonesVisited) p.zonesVisited = [];
+
+  // achievements (added v10.1)
+  if(!p.achievements) p.achievements = [];
+
+  // quests (added v10.1)
+  if(!p.quests) p.quests = {};
+
+  // guildId (added v10.1)
+  if(p.guildId===undefined) p.guildId = '';
+
+  // bio, avatar (added v10.1)
+  if(!p.bio) p.bio = '';
+  if(!p.avatar) p.avatar = '';
+
+  // gearAtk / gearDef (added v10.0 — recalculate if missing)
+  if(p.gearAtk===undefined || p.gearDef===undefined) {
+    p.gearAtk = 0; p.gearDef = 0;
+    (p.equipped||[]).forEach(e => {
+      const st = EQ[e.toLowerCase()];
+      if(st) { p.gearAtk += (st.atk||0); p.gearDef += (st.def||0); }
+    });
+  }
+
+  // regenTimer (changed v10.2 — reset to 900 if old value)
+  if(!p.regenTimer || p.regenTimer < 10) p.regenTimer = 900;
+
+  // room validation — if saved room no longer exists, reset
+  if(p.room && !WT[p.room] && !p.room.startsWith('private_') && !p.room.startsWith('hall_')) {
+    console.log(`[MIGRATE] Resetting invalid room "${p.room}" for ${p.username}`);
+    p.room = 'town_square';
+  }
+
+  // pendingSpec cleanup
+  if(p.pendingSpec===undefined) p.pendingSpec = null;
+
+  // zombies cleanup — ensure array
+  if(!Array.isArray(p.zombies)) p.zombies = [];
+
+  // companions sync — keep p.companion in sync with first companion
+  p.companion = p.companions[0] || null;
+
+  console.log(`[Hydrate] ${p.username||'?'} — Level ${p.level}, ${(p.companions||[]).length} companions, ${(p.zombies||[]).length} zombies`);
+  return p;
+}
 
 // Admin account
 const ADMIN_USER = 'bound';
