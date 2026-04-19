@@ -185,6 +185,61 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
   </div>
 </div>
 
+<!-- OPTIONS PANEL -->
+<div id="options-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center">
+  <div style="background:var(--bg1);border:1px solid var(--border2);border-radius:6px;width:460px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 0 40px rgba(58,158,222,.2)">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);background:var(--bg0);display:flex;justify-content:space-between;align-items:center">
+      <div style="font-family:var(--serif);font-size:16px;color:var(--accent);letter-spacing:3px">⚙ OPTIONS</div>
+      <button onclick="toggleOptions()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px">✕</button>
+    </div>
+    <div style="padding:20px;display:flex;flex-direction:column;gap:18px">
+
+      <!-- Sound -->
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:14px">
+        <div style="font-size:11px;color:var(--accent);letter-spacing:2px;margin-bottom:10px">🔊 SOUND</div>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:12px;color:var(--text)">
+          <input type="checkbox" id="opt-sound" onchange="saveOptions()" style="width:16px;height:16px;cursor:pointer">
+          Enable sound effects
+        </label>
+        <div style="margin-top:8px;display:flex;align-items:center;gap:10px">
+          <span style="font-size:11px;color:var(--text3)">Volume</span>
+          <input type="range" id="opt-volume" min="0" max="100" value="50" onchange="saveOptions()" style="flex:1;cursor:pointer">
+          <span id="opt-volume-val" style="font-size:11px;color:var(--text2);width:30px">50%</span>
+        </div>
+      </div>
+
+      <!-- Gameplay -->
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:14px">
+        <div style="font-size:11px;color:var(--accent);letter-spacing:2px;margin-bottom:10px">⚔ GAMEPLAY</div>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:12px;color:var(--text);margin-bottom:8px">
+          <input type="checkbox" id="opt-autoloot" onchange="applyAutoLoot()" style="width:16px;height:16px;cursor:pointer">
+          Auto-loot items after combat
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:12px;color:var(--text)">
+          <input type="checkbox" id="opt-timestamps" onchange="saveOptions()" style="width:16px;height:16px;cursor:pointer">
+          Show timestamps on messages
+        </label>
+      </div>
+
+      <!-- Aliases -->
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:14px">
+        <div style="font-size:11px;color:var(--accent);letter-spacing:2px;margin-bottom:10px">⚡ COMMAND SHORTCUTS</div>
+        <div style="font-size:10px;color:var(--text3);margin-bottom:10px">Type a shortcut and what command it runs. Press Enter or click Add.</div>
+        <div id="alias-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;max-height:160px;overflow-y:auto"></div>
+        <div style="display:flex;gap:6px">
+          <input id="alias-key" placeholder="shortcut" style="flex:1;background:var(--bg0);border:1px solid var(--border2);color:var(--text);font-family:var(--mono);font-size:11px;padding:6px;border-radius:2px;outline:none">
+          <input id="alias-val" placeholder="command" style="flex:2;background:var(--bg0);border:1px solid var(--border2);color:var(--text);font-family:var(--mono);font-size:11px;padding:6px;border-radius:2px;outline:none">
+          <button onclick="addAliasFromPanel()" style="background:var(--accent2);border:1px solid var(--accent);color:var(--accent);font-family:var(--mono);font-size:11px;padding:6px 12px;cursor:pointer;border-radius:2px">Add</button>
+        </div>
+      </div>
+
+    </div>
+    <div style="padding:10px 20px;border-top:1px solid var(--border);background:var(--bg0);display:flex;justify-content:flex-end">
+      <button onclick="toggleOptions()" style="background:var(--accent2);border:1px solid var(--accent);color:var(--accent);font-family:var(--mono);font-size:12px;padding:6px 20px;cursor:pointer;border-radius:2px;letter-spacing:1px">CLOSE</button>
+    </div>
+  </div>
+</div>
+
 <!-- NPC PROFILE MODAL -->
 <div id="npc-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center">
   <div id="npc-card" style="background:var(--bg1);border:1px solid var(--border2);border-radius:6px;width:480px;max-width:95vw;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 0 60px rgba(58,158,222,.2)">
@@ -303,6 +358,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
         <button class="qb" onclick="cmd('stats')">STATS</button>
         <button class="qb" onclick="cmd('who')">WHO</button>
         <button class="qb" style="color:#d0a060;border-color:#d0a060" onclick="cmd('board')">BOARD</button>
+        <button class="qb" style="color:var(--teal);border-color:var(--teal)" onclick="toggleOptions()">⚙ OPTIONS</button>
         <button class="qb" onclick="cmd('map')">MAP</button>
         <button class="qb" onclick="cmd('help')">HELP</button>
       </div>
@@ -463,6 +519,20 @@ function handle(msg){
 // ── OUTPUT ────────────────────────────────────────────────
 const OUT=document.getElementById('output');
 function pr(text,cls=''){
+  // Play sounds based on message type
+  if(soundEnabled && text){
+    if(cls==='combat' && text.includes('You strike')) playSound('attack');
+    else if(cls==='combat' && (text.includes('retaliates')||text.includes('lunges'))) playSound('hit');
+    else if(cls==='skill') playSound('skill');
+    else if(cls==='loot' && text.includes('LEVEL UP')) playSound('levelup');
+    else if(cls==='loot' && (text.includes('Dropped')||text.includes('Auto-loot')||text.includes('Purchased'))) playSound('loot');
+    else if(cls==='ok' && text.includes('fully restored')) playSound('loot');
+    else if(cls==='err') playSound('error');
+    else if(cls==='narrate' && text.includes('head')) playSound('move');
+    else if(cls==='loot' && text.includes('ACHIEVEMENT')) playSound('notification');
+    else if(cls==='shop' && text.includes('Bought')) playSound('buy');
+    else if(text.includes('Y O U   D I E D')) playSound('death');
+  }
   const d=document.createElement('div');
   d.className='line'+(cls?' '+cls:'');d.textContent=text;
   OUT.appendChild(d);
@@ -536,7 +606,10 @@ document.getElementById('picker-overlay').addEventListener('click',e=>{
 });
 
 // ── SIDEBAR UPDATE ────────────────────────────────────────
+let _lastLevel=1;
 function updateSidebar(d){
+  if(d.level && d.level > _lastLevel && _lastLevel > 1) playSound('levelup');
+  if(d.level) _lastLevel=d.level;
   if(d.name){document.getElementById('av-name').textContent=d.name;}
   if(d.className&&d.raceName){document.getElementById('av-sub').textContent=`${d.raceName} ${d.className}`;}
   document.getElementById('s-race').textContent  =d.raceName||'—';
@@ -644,6 +717,174 @@ function getFileInput(){
   return fresh;
 }
 
+// ── OPTIONS PANEL + SOUND SYSTEM ────────────────────────────────────────
+let soundEnabled = false;
+let soundVolume = 0.5;
+let audioCtx = null;
+let localAliases = {};
+let showTimestamps = false;
+
+function getAudioCtx(){
+  if(!audioCtx) try{audioCtx=new(window.AudioContext||window.webkitAudioContext)();}catch{}
+  return audioCtx;
+}
+
+// Synthesized sound effects using Web Audio API — no files needed
+function playSound(type){
+  if(!soundEnabled) return;
+  const ctx=getAudioCtx(); if(!ctx) return;
+  const vol=soundVolume;
+  const g=ctx.createGain(); g.gain.setValueAtTime(vol,ctx.currentTime); g.connect(ctx.destination);
+  const o=ctx.createOscillator();
+  o.connect(g);
+  const now=ctx.currentTime;
+  switch(type){
+    case'attack':
+      o.type='sawtooth'; o.frequency.setValueAtTime(180,now); o.frequency.exponentialRampToValueAtTime(80,now+0.15);
+      g.gain.exponentialRampToValueAtTime(0.001,now+0.15); o.start(now); o.stop(now+0.15); break;
+    case'hit':
+      o.type='square'; o.frequency.setValueAtTime(120,now); o.frequency.exponentialRampToValueAtTime(60,now+0.12);
+      g.gain.exponentialRampToValueAtTime(0.001,now+0.12); o.start(now); o.stop(now+0.12); break;
+    case'skill':
+      o.type='sine'; o.frequency.setValueAtTime(440,now); o.frequency.exponentialRampToValueAtTime(880,now+0.1);
+      o.frequency.exponentialRampToValueAtTime(660,now+0.25);
+      g.gain.exponentialRampToValueAtTime(0.001,now+0.25); o.start(now); o.stop(now+0.25); break;
+    case'levelup':
+      // Fanfare: three rising tones
+      [0,0.15,0.3].forEach((t,i)=>{
+        const oo=ctx.createOscillator(); const gg=ctx.createGain();
+        oo.connect(gg); gg.connect(ctx.destination);
+        oo.type='sine'; oo.frequency.value=[523,659,784][i];
+        gg.gain.setValueAtTime(vol,now+t); gg.gain.exponentialRampToValueAtTime(0.001,now+t+0.25);
+        oo.start(now+t); oo.stop(now+t+0.3);
+      }); break;
+    case'loot':
+      o.type='sine'; o.frequency.setValueAtTime(880,now); o.frequency.exponentialRampToValueAtTime(1100,now+0.08);
+      g.gain.exponentialRampToValueAtTime(0.001,now+0.2); o.start(now); o.stop(now+0.2); break;
+    case'death':
+      o.type='sawtooth'; o.frequency.setValueAtTime(220,now); o.frequency.exponentialRampToValueAtTime(55,now+0.6);
+      g.gain.exponentialRampToValueAtTime(0.001,now+0.6); o.start(now); o.stop(now+0.6); break;
+    case'error':
+      o.type='square'; o.frequency.setValueAtTime(200,now); o.frequency.setValueAtTime(150,now+0.1);
+      g.gain.exponentialRampToValueAtTime(0.001,now+0.2); o.start(now); o.stop(now+0.2); break;
+    case'move':
+      o.type='sine'; o.frequency.setValueAtTime(330,now); o.frequency.exponentialRampToValueAtTime(280,now+0.08);
+      g.gain.setValueAtTime(vol*0.3,now); g.gain.exponentialRampToValueAtTime(0.001,now+0.08);
+      o.start(now); o.stop(now+0.08); break;
+    case'buy':
+      [0,0.08].forEach((t,i)=>{
+        const oo=ctx.createOscillator(); const gg=ctx.createGain();
+        oo.connect(gg); gg.connect(ctx.destination);
+        oo.type='sine'; oo.frequency.value=[660,880][i];
+        gg.gain.setValueAtTime(vol*0.5,now+t); gg.gain.exponentialRampToValueAtTime(0.001,now+t+0.12);
+        oo.start(now+t); oo.stop(now+t+0.15);
+      }); break;
+    case'notification':
+      o.type='sine'; o.frequency.setValueAtTime(660,now); o.frequency.setValueAtTime(880,now+0.1);
+      g.gain.exponentialRampToValueAtTime(0.001,now+0.3); o.start(now); o.stop(now+0.3); break;
+  }
+}
+
+// Wire sounds to game events
+const _origPr = typeof pr !== 'undefined' ? pr : null;
+function prWithSound(text, cls){
+  if(cls==='combat') playSound('hit');
+  else if(cls==='skill') playSound('skill');
+  else if(cls==='loot') playSound('loot');
+  else if(cls==='err') playSound('error');
+  else if(cls==='ok' && text && text.includes('LEVEL UP')) playSound('levelup');
+  else if(cls==='ok' && text && text.includes('HP fully restored')) playSound('loot');
+}
+
+// OPTIONS PANEL
+function toggleOptions(){
+  const ov=document.getElementById('options-overlay');
+  const isOpen=ov.style.display==='flex';
+  ov.style.display=isOpen?'none':'flex';
+  if(!isOpen) loadOptionsPanel();
+}
+
+function loadOptionsPanel(){
+  document.getElementById('opt-sound').checked=soundEnabled;
+  document.getElementById('opt-volume').value=Math.round(soundVolume*100);
+  document.getElementById('opt-volume-val').textContent=Math.round(soundVolume*100)+'%';
+  document.getElementById('opt-autoloot').checked=!!(window._autoloot);
+  document.getElementById('opt-timestamps').checked=showTimestamps;
+  renderAliasList();
+}
+
+function saveOptions(){
+  soundEnabled=document.getElementById('opt-sound').checked;
+  soundVolume=document.getElementById('opt-volume').value/100;
+  document.getElementById('opt-volume-val').textContent=document.getElementById('opt-volume').value+'%';
+  showTimestamps=document.getElementById('opt-timestamps').checked;
+  localStorage.setItem('sm_sound',soundEnabled?'1':'0');
+  localStorage.setItem('sm_vol',soundVolume);
+  localStorage.setItem('sm_timestamps',showTimestamps?'1':'0');
+}
+
+function applyAutoLoot(){
+  const on=document.getElementById('opt-autoloot').checked;
+  window._autoloot=on;
+  send({type:'cmd',text:'autoloot'});
+  saveOptions();
+}
+
+function renderAliasList(){
+  const el=document.getElementById('alias-list');
+  if(!el)return;
+  el.innerHTML='';
+  Object.entries(localAliases).forEach(([k,v])=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;gap:6px;align-items:center';
+    row.innerHTML=`<span style="flex:1;font-size:11px;color:var(--accent);font-family:var(--mono)">${k}</span>
+      <span style="font-size:10px;color:var(--text3)">→</span>
+      <span style="flex:2;font-size:11px;color:var(--text2);font-family:var(--mono)">${v}</span>
+      <button onclick="removeAlias('${k}')" style="background:none;border:1px solid var(--border);color:var(--red);font-size:10px;padding:2px 6px;cursor:pointer;border-radius:2px">✕</button>`;
+    el.appendChild(row);
+  });
+  if(!Object.keys(localAliases).length){
+    el.innerHTML='<div style="font-size:11px;color:var(--text3);font-style:italic">No shortcuts set yet.</div>';
+  }
+}
+
+function addAliasFromPanel(){
+  const k=document.getElementById('alias-key').value.trim().toLowerCase();
+  const v=document.getElementById('alias-val').value.trim();
+  if(!k||!v) return;
+  localAliases[k]=v;
+  send({type:'cmd',text:`alias ${k} ${v}`});
+  document.getElementById('alias-key').value='';
+  document.getElementById('alias-val').value='';
+  renderAliasList();
+}
+
+function removeAlias(key){
+  delete localAliases[key];
+  send({type:'cmd',text:`alias ${key}`}); // sends with no value = delete
+  renderAliasList();
+}
+
+// Load saved options on startup
+(function(){
+  try{
+    soundEnabled=localStorage.getItem('sm_sound')==='1';
+    soundVolume=parseFloat(localStorage.getItem('sm_vol')||'0.5');
+    showTimestamps=localStorage.getItem('sm_timestamps')==='1';
+  }catch{}
+})();
+
+// Close options on backdrop click
+document.getElementById('options-overlay').addEventListener('click',e=>{
+  if(e.target===document.getElementById('options-overlay'))toggleOptions();
+});
+
+// Volume slider live update
+document.getElementById('opt-volume').addEventListener('input',function(){
+  document.getElementById('opt-volume-val').textContent=this.value+'%';
+  soundVolume=this.value/100;
+});
+
 // ── NPC PORTRAITS ─────────────────────────────────────────────────────────
 const NPC_PORTRAITS = {
   tormund:  {bg:'#1a0f08',fg:'#8b5e3c',hair:'#3a2010',skin:'#c4956a',feature:'beard', accent:'#4a3020'},
@@ -709,6 +950,7 @@ document.getElementById('npc-overlay').addEventListener('click',e=>{if(e.target=
 
 // ── MONSTER COMBAT CARD ──────────────────────────────────────────────────
 function showMobCard(d){
+  playSound('attack');
   const card=document.getElementById('mob-card');
   const img=document.getElementById('mob-img');
   img.src=d.img+'?t='+Date.now(); // cache bust
