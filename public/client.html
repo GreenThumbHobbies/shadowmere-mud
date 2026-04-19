@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Shadowmere MUD</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg0:#05080d;--bg1:#0a0f18;--bg2:#101820;--bg3:#162030;
+  --border:#1a2e44;--border2:#244060;
+  --text:#aec8e0;--text2:#6898b8;--text3:#3a5a78;
+  --accent:#3a9ede;--accent2:#1a5a9a;
+  --green:#2aaa50;--green2:#0a6a30;
+  --red:#cc3320;--gold:#c89820;
+  --purple:#7850c8;--orange:#c85010;--teal:#209898;
+  --mono:'Share Tech Mono',monospace;--serif:'Cinzel',serif;
+}
+html,body{height:100%;background:var(--bg0);color:var(--text);font-family:var(--mono);font-size:13px;overflow:hidden}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.06) 2px,rgba(0,0,0,.06) 4px);pointer-events:none;z-index:9000}
+#app{display:flex;flex-direction:column;height:100vh;max-width:1200px;margin:0 auto;padding:6px;gap:6px}
+#hdr{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;background:var(--bg1);border:1px solid var(--border);border-radius:3px;flex-shrink:0}
+#hdr-title{font-family:var(--serif);font-size:20px;color:var(--accent);letter-spacing:5px;text-shadow:0 0 20px rgba(58,158,222,.4)}
+#hdr-sub{font-size:10px;color:var(--text3);letter-spacing:2px;margin-top:2px}
+#online{font-size:11px;color:var(--green)}
+#main{display:flex;flex:1;gap:6px;overflow:hidden;min-height:0}
+#output-panel{flex:1;display:flex;flex-direction:column;background:var(--bg1);border:1px solid var(--border);border-radius:3px;overflow:hidden;min-width:0}
+#output{flex:1;padding:12px 14px;overflow-y:auto;display:flex;flex-direction:column;gap:2px;scrollbar-width:thin;scrollbar-color:var(--border2) var(--bg1)}
+#output::-webkit-scrollbar{width:5px}#output::-webkit-scrollbar-track{background:var(--bg1)}#output::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.line{line-height:1.7;font-size:12px;word-break:break-word}
+.line.room{color:var(--accent);font-family:var(--serif);font-size:14px;margin-top:8px;letter-spacing:1px}
+.line.zone{color:#7098b0;font-family:var(--serif);font-size:10px;letter-spacing:2px;margin-top:3px}
+.line.desc{color:#7a9ab8}.line.exits{color:var(--green)}.line.combat{color:var(--orange)}
+.line.loot{color:var(--gold)}.line.sys{color:var(--text3)}.line.err{color:var(--red)}
+.line.ok{color:var(--green)}.line.narrate{color:var(--purple);font-style:italic}
+.line.prompt{color:var(--text3)}.line.sep{color:var(--border2)}.line.shop{color:var(--teal)}
+.line.skill{color:#50d8c0}.line.chat{color:#d8b860}.line.tell{color:#b060d8;font-style:italic}
+.line.players{color:#60b8d8}.line.system{color:var(--text3);font-style:italic}
+
+/* ── TILE PICKER OVERLAY ───────────────────────────────── */
+#picker-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:9998;flex-direction:column;align-items:center;overflow-y:auto;padding:24px 16px}
+#picker-overlay.open{display:flex}
+#picker-title{font-family:var(--serif);font-size:22px;color:var(--accent);letter-spacing:4px;margin-bottom:6px;text-align:center}
+#picker-subtitle{font-size:11px;color:var(--text3);letter-spacing:2px;margin-bottom:20px;text-align:center}
+#picker-grid{display:grid;gap:10px;width:100%;max-width:1100px}
+#picker-grid.race-grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+#picker-grid.class-grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+.tile{background:var(--bg1);border:1px solid var(--border);border-radius:5px;padding:14px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
+.tile:hover{border-color:var(--accent);background:var(--bg2);transform:translateY(-2px);box-shadow:0 4px 20px rgba(58,158,222,.15)}
+.tile.selected{border-color:var(--accent);background:var(--bg2);box-shadow:0 0 0 2px var(--accent)}
+.tile-name{font-family:var(--serif);font-size:14px;color:var(--accent);letter-spacing:1px;margin-bottom:4px}
+.tile-role{font-size:9px;color:var(--teal);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.tile-bonus{font-size:10px;color:var(--gold);margin-bottom:6px}
+.tile-desc{font-size:10px;color:var(--text2);line-height:1.5;margin-bottom:8px}
+.tile-stats{display:flex;gap:8px;flex-wrap:wrap}
+.tile-stat{font-size:10px;background:var(--bg0);border:1px solid var(--border);padding:2px 7px;border-radius:2px;color:var(--text2)}
+.tile-stat span{color:var(--text);font-weight:bold}
+.tile-skills{margin-top:8px;font-size:9px;color:var(--text3);border-top:1px solid var(--border);padding-top:6px;line-height:1.6}
+.tile-skills strong{color:var(--teal)}
+#picker-confirm{margin-top:20px;padding:10px 36px;background:var(--accent2);border:1px solid var(--accent);color:var(--accent);font-family:var(--serif);font-size:14px;letter-spacing:2px;cursor:pointer;border-radius:3px;transition:all .15s}
+#picker-confirm:hover{background:var(--accent);color:#fff}
+#picker-confirm:disabled{opacity:.4;cursor:default}
+
+/* ── QUICK BAR ─────────────────────────────────────────── */
+#quick{padding:6px 8px;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:3px;background:var(--bg0);flex-shrink:0}
+.qb{background:var(--bg2);border:1px solid var(--border);color:var(--text2);font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:2px;cursor:pointer;transition:all .12s}
+.qb:hover{background:var(--bg3);color:var(--accent);border-color:var(--accent2)}
+.qb.dir{color:var(--green);border-color:var(--green2)}.qb.dir:hover{background:rgba(42,170,80,.1)}
+.qb.cc{color:var(--orange);border-color:var(--orange)}.qb.cc:hover{background:rgba(200,80,16,.1)}
+.qb.sh{color:var(--teal);border-color:var(--teal)}.qb.sh:hover{background:rgba(32,152,152,.1)}
+.qb.sk{color:#50d8c0;border-color:#50d8c0}
+.qb.tel{color:var(--purple);border-color:var(--purple)}.qb.tel:hover{background:rgba(120,80,200,.1)}
+.qb.prof{color:var(--gold);border-color:var(--gold)}.qb.prof:hover{background:rgba(200,152,32,.1)}
+#input-row{display:flex;border-top:1px solid var(--border);background:var(--bg0);flex-shrink:0}
+#psym{padding:9px 0 9px 12px;color:var(--green);font-size:13px}
+#cmd{flex:1;background:transparent;border:none;outline:none;color:#b0e8c0;font-family:var(--mono);font-size:12px;padding:9px 6px;caret-color:var(--green)}
+#cmd::placeholder{color:var(--text3)}
+#entr{background:var(--bg2);border:none;border-left:1px solid var(--border);color:var(--green);font-family:var(--mono);font-size:11px;padding:0 14px;cursor:pointer;letter-spacing:1px}
+#entr:hover{background:var(--bg3);color:#5de890}
+
+/* ── SIDEBAR ───────────────────────────────────────────── */
+#sidebar{width:196px;display:flex;flex-direction:column;gap:6px;overflow-y:auto;scrollbar-width:none;flex-shrink:0}
+#sidebar::-webkit-scrollbar{display:none}
+.panel{background:var(--bg1);border:1px solid var(--border);border-radius:3px;padding:10px 12px}
+.plbl{font-size:8px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;border-bottom:1px solid var(--border);padding-bottom:5px;margin-bottom:8px;font-family:var(--serif)}
+.sr{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;font-size:11px}
+.sn{color:var(--text2)}.sv{color:var(--text);font-weight:bold}
+.sv.danger{color:var(--red)}.sv.warn{color:var(--gold)}.sv.ok{color:var(--green)}
+.bar{background:var(--bg0);height:4px;border-radius:2px;margin:1px 0 6px}
+.bfill{height:100%;border-radius:2px;transition:width .4s,background .4s}
+.iitem{font-size:10px;color:#7aA0c0;padding:1px 0}.iitem.eq{color:var(--gold)}
+.iempty{font-size:10px;color:var(--text3);font-style:italic}
+#loc-name{font-size:11px;color:var(--accent);line-height:1.4}
+#zone-lbl{font-size:9px;color:var(--text3);margin-top:2px;letter-spacing:1px}
+.banner{display:none;border-radius:3px;padding:6px 10px;font-size:11px;text-align:center;letter-spacing:1px}
+.banner.active{display:block}
+.banner.combat-b{background:rgba(200,80,16,.15);border:1px solid var(--orange);color:var(--orange)}
+.banner.shop-b{background:rgba(32,152,152,.1);border:1px solid var(--teal);color:var(--teal)}
+.banner.shrine-b{background:rgba(120,80,200,.12);border:1px solid var(--purple);color:var(--purple)}
+.sk-row{display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px}
+.sk-name{color:var(--teal)}.sk-cd{font-size:9px;color:var(--text3)}.sk-cd.rdy{color:var(--green)}
+#regen-row{display:flex;justify-content:space-between;align-items:center;font-size:10px;margin-top:3px;border-top:1px solid var(--border);padding-top:5px}
+#conn-dot{width:7px;height:7px;border-radius:50%;background:var(--red);display:inline-block;margin-right:5px}
+#conn-dot.ok{background:var(--green)}
+
+/* ── AVATAR PANEL ──────────────────────────────────────── */
+#avatar-panel{background:var(--bg1);border:1px solid var(--border);border-radius:3px;overflow:hidden;flex-shrink:0}
+#avatar-img-wrap{position:relative;width:100%;aspect-ratio:2/3;background:var(--bg0);overflow:hidden}
+#avatar-img{width:100%;height:100%;object-fit:cover;display:none}
+#avatar-placeholder{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--text3);font-size:10px;letter-spacing:1px}
+#avatar-placeholder svg{opacity:.3}
+#avatar-hover{position:absolute;inset:0;background:rgba(0,0,0,.65);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;opacity:0;transition:opacity .2s;pointer-events:none}
+#avatar-img-wrap:hover #avatar-hover{opacity:1}
+#avatar-hover span{font-size:10px;color:var(--accent);letter-spacing:1px}
+#avatar-actions{display:flex;gap:4px;padding:6px 8px;background:var(--bg0);border-top:1px solid var(--border)}
+#avatar-upload-btn{flex:1;background:var(--bg2);border:1px solid var(--border2);color:var(--accent);font-family:var(--mono);font-size:10px;padding:4px;cursor:pointer;border-radius:2px;text-align:center}
+#avatar-upload-btn:hover{background:var(--bg3)}
+#avatar-clear-btn{background:var(--bg2);border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:10px;padding:4px 8px;cursor:pointer;border-radius:2px}
+#avatar-clear-btn:hover{color:var(--red);border-color:var(--red)}
+#avatar-name-label{padding:6px 10px 8px;font-size:11px;color:var(--text2);text-align:center;line-height:1.4;border-top:1px solid var(--border)}
+#avatar-name-label strong{display:block;color:var(--accent);font-family:var(--serif);font-size:12px;letter-spacing:1px}
+#avatar-name-label span{font-size:9px;color:var(--text3)}
+
+/* ── PROFILE MODAL ─────────────────────────────────────── */
+#profile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:9999;align-items:center;justify-content:center}
+#profile-overlay.open{display:flex}
+#profile-card{background:var(--bg1);border:1px solid var(--border2);border-radius:6px;width:520px;max-width:95vw;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 0 60px rgba(58,158,222,.15)}
+#profile-card-header{display:flex;align-items:center;gap:14px;padding:16px;border-bottom:1px solid var(--border);background:var(--bg0)}
+#profile-card-avatar{width:80px;height:120px;border:1px solid var(--border2);border-radius:3px;object-fit:cover;background:var(--bg2);flex-shrink:0;display:none}
+#profile-card-avatar-ph{width:80px;height:120px;border:1px solid var(--border);border-radius:3px;background:var(--bg2);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text3);font-size:10px;text-align:center;line-height:1.4}
+#profile-card-name{font-family:var(--serif);font-size:18px;color:var(--accent);letter-spacing:2px}
+#profile-card-sub{font-size:11px;color:var(--teal);margin-top:3px}
+#profile-card-race{font-size:10px;color:var(--purple);margin-top:2px}
+#profile-card-body{display:flex;flex:1;overflow:hidden}
+#profile-stats-col{width:180px;border-right:1px solid var(--border);padding:14px;flex-shrink:0;overflow-y:auto}
+#profile-bio-col{flex:1;padding:14px;display:flex;flex-direction:column;gap:10px;overflow-y:auto}
+.pstat{display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px}
+.pstat-label{color:var(--text2)}.pstat-val{color:var(--text);font-weight:bold}
+.pstat-val.gold-c{color:var(--gold)}.pstat-val.green-c{color:var(--green)}
+.pbio-label{font-size:9px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;margin-bottom:6px}
+#profile-bio-text{font-size:11px;color:var(--text);line-height:1.8;white-space:pre-wrap;min-height:60px}
+#profile-bio-text.empty{color:var(--text3);font-style:italic}
+#profile-bio-edit{display:none;flex-direction:column;gap:6px}
+#profile-bio-textarea{background:var(--bg0);border:1px solid var(--border2);color:var(--text);font-family:var(--mono);font-size:11px;padding:8px;resize:vertical;min-height:80px;border-radius:2px;outline:none;line-height:1.6}
+#profile-bio-textarea:focus{border-color:var(--accent)}
+#profile-bio-chars{font-size:9px;color:var(--text3);text-align:right}
+.profile-gear{font-size:10px;color:var(--gold);margin-top:2px}
+#profile-card-footer{padding:10px 16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;background:var(--bg0)}
+.pfoot-btn{background:var(--bg2);border:1px solid var(--border2);color:var(--text2);font-family:var(--mono);font-size:11px;padding:5px 14px;cursor:pointer;border-radius:2px}
+.pfoot-btn:hover{background:var(--bg3);color:var(--accent);border-color:var(--accent)}
+.pfoot-btn.primary{color:var(--green);border-color:var(--green)}.pfoot-btn.primary:hover{background:rgba(42,170,80,.1)}
+.pfoot-btn.danger{color:var(--red);border-color:var(--red)}.pfoot-btn.danger:hover{background:rgba(204,51,32,.1)}
+</style>
+</head>
+<body>
+
+<!-- TILE PICKER OVERLAY (race + class selection) -->
+<div id="picker-overlay">
+  <div id="picker-title">CHOOSE YOUR RACE</div>
+  <div id="picker-subtitle">Click a tile to select, then confirm</div>
+  <div id="picker-grid" class="race-grid"></div>
+  <button id="picker-confirm" disabled onclick="confirmPick()">CONFIRM SELECTION</button>
+</div>
+
+<!-- PROFILE MODAL -->
+<div id="profile-overlay">
+  <div id="profile-card">
+    <div id="profile-card-header">
+      <img id="profile-card-avatar" src="" alt="">
+      <div id="profile-card-avatar-ph">NO<br>ART</div>
+      <div>
+        <div id="profile-card-name">—</div>
+        <div id="profile-card-sub">—</div>
+        <div id="profile-card-race">—</div>
+      </div>
+    </div>
+    <div id="profile-card-body">
+      <div id="profile-stats-col">
+        <div class="pbio-label">Stats</div>
+        <div class="pstat"><span class="pstat-label">Level</span><span class="pstat-val" id="pc-level">—</span></div>
+        <div class="pstat"><span class="pstat-label">HP</span><span class="pstat-val green-c" id="pc-hp">—</span></div>
+        <div class="pstat"><span class="pstat-label">ATK</span><span class="pstat-val" id="pc-atk">—</span></div>
+        <div class="pstat"><span class="pstat-label">DEF</span><span class="pstat-val" id="pc-def">—</span></div>
+        <div class="pstat" id="pc-gold-row"><span class="pstat-label">Gold</span><span class="pstat-val gold-c" id="pc-gold">—</span></div>
+        <div class="pstat"><span class="pstat-label">XP</span><span class="pstat-val" id="pc-xp">—</span></div>
+        <div id="pc-companion-row"><div class="pbio-label" style="margin-top:10px">Companion</div><div class="pstat"><span class="pstat-val" id="pc-companion" style="color:var(--teal)">—</span></div></div>
+        <div id="pc-zombie-row"><div class="pbio-label" style="margin-top:10px">Minions</div><div class="pstat"><span class="pstat-val" id="pc-zombies" style="color:#a060d0">—</span></div></div>
+        <div><div class="pbio-label" style="margin-top:10px">Equipped</div><div id="pc-gear">—</div></div>
+      </div>
+      <div id="profile-bio-col">
+        <div>
+          <div class="pbio-label">About</div>
+          <div id="profile-bio-text" class="empty">No biography set.</div>
+          <div id="profile-bio-edit">
+            <textarea id="profile-bio-textarea" maxlength="300" placeholder="Describe your character..."></textarea>
+            <div id="profile-bio-chars">0 / 300</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="profile-card-footer">
+      <button class="pfoot-btn danger" id="profile-clear-avatar-btn" onclick="clearAvatar()">Remove Portrait</button>
+      <button class="pfoot-btn" id="profile-edit-bio-btn" onclick="toggleBioEdit()">Edit Bio</button>
+      <button class="pfoot-btn primary" id="profile-save-bio-btn" onclick="saveBio()">Save Bio</button>
+      <button class="pfoot-btn" onclick="closeProfile()">Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="app">
+  <div id="hdr">
+    <div><div id="hdr-title">SHADOWMERE</div><div id="hdr-sub">MULTIPLAYER TEXT ADVENTURE MUD</div></div>
+    <div style="display:flex;align-items:center;gap:14px">
+      <span id="online"></span>
+      <span><span id="conn-dot"></span><span id="conn-txt" style="font-size:10px;color:var(--text3)">Connecting...</span></span>
+    </div>
+  </div>
+  <div id="main">
+    <div id="output-panel">
+      <div id="output"></div>
+      <div id="quick">
+        <button class="qb dir" onclick="cmd('north')">N</button>
+        <button class="qb dir" onclick="cmd('south')">S</button>
+        <button class="qb dir" onclick="cmd('east')">E</button>
+        <button class="qb dir" onclick="cmd('west')">W</button>
+        <button class="qb dir" onclick="cmd('up')">UP</button>
+        <button class="qb dir" onclick="cmd('down')">DOWN</button>
+        <button class="qb dir" onclick="cmd('out')">OUT</button>
+        <button class="qb" onclick="cmd('look')">LOOK</button>
+        <button class="qb" style="color:#d0a060;border-color:#d0a060" onclick="cmd('talk ')">TALK</button>
+        <button class="qb" style="color:#d0a060;border-color:#d0a060" onclick="cmd('ask ')">ASK</button>
+        <button class="qb" style="color:#d0a060;border-color:#d0a060" onclick="cmd('quests')">QUESTS</button>
+        <button class="qb cc" onclick="cmd('attack')">ATTACK</button>
+        <button class="qb cc" onclick="cmd('flee')">FLEE</button>
+        <button class="qb sk" onclick="cmd('skills')">SKILLS</button>
+        <button class="qb sh" onclick="cmd('shop')">SHOP</button>
+        <button class="qb sh" onclick="cmd('buy ')">BUY</button>
+        <button class="qb sh" onclick="cmd('sell ')">SELL</button>
+        <button class="qb tel" onclick="cmd('shrine')">SHRINE</button>
+        <button class="qb tel" onclick="cmd('teleport ')">TELEPORT</button>
+        <button class="qb" onclick="cmd('tame')">TAME</button>
+        <button class="qb" onclick="cmd('companion')">PET</button>
+        <button class="qb" onclick="cmd('party follow')">FOLLOW</button>
+        <button class="qb prof" onclick="cmd('guildhall')">GUILDHALL</button>
+        <button class="qb" onclick="cmd('zombies')">ZOMBIES</button>
+        <button class="qb prof" onclick="cmd('profile')">PROFILE</button>
+        <button class="qb prof" onclick="cmd('achievements')">ACHIEVE</button>
+        <button class="qb" onclick="cmd('inventory')">INV</button>
+        <button class="qb" onclick="cmd('stats')">STATS</button>
+        <button class="qb" onclick="cmd('who')">WHO</button>
+        <button class="qb" onclick="cmd('map')">MAP</button>
+        <button class="qb" onclick="cmd('help')">HELP</button>
+      </div>
+      <div id="input-row">
+        <span id="psym">&gt;</span>
+        <input id="cmd" type="text" placeholder="enter command..." autocomplete="off" spellcheck="false"/>
+        <button id="entr" onclick="submit()">ENTER</button>
+      </div>
+    </div>
+
+    <div id="sidebar">
+      <div class="banner combat-b" id="combat-banner">⚔ IN COMBAT</div>
+      <div class="banner shop-b"   id="shop-banner">🛒 SHOP NEARBY</div>
+      <div class="banner shrine-b" id="shrine-banner">✦ SHRINE — TELEPORT [1-4]</div>
+
+      <!-- AVATAR -->
+      <div id="avatar-panel">
+        <div id="avatar-img-wrap">
+          <div id="avatar-placeholder">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            <span>CLICK TO ADD<br>PORTRAIT</span>
+          </div>
+          <img id="avatar-img" src="" alt="">
+          <div id="avatar-hover">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span>CHANGE PORTRAIT</span>
+          </div>
+        </div>
+        <div id="avatar-actions">
+          <button id="avatar-upload-btn" onclick="triggerUpload()">📷 Upload Image</button>
+          <button id="avatar-clear-btn" onclick="clearAvatar()" title="Remove portrait">✕</button>
+        </div>
+        <div id="avatar-name-label">
+          <strong id="av-name">—</strong>
+          <span id="av-sub">—</span>
+        </div>
+      </div>
+      <!-- Hidden file input — NOT inside the clickable wrap div -->
+      <input type="file" id="avatar-file-input" accept="image/*" style="display:none">
+
+      <!-- STATS -->
+      <div class="panel">
+        <div class="plbl">Character</div>
+        <div class="sr"><span class="sn">Race</span><span class="sv" id="s-race" style="font-size:10px;color:var(--purple)">—</span></div>
+        <div class="sr"><span class="sn">Class</span><span class="sv" id="s-class" style="font-size:10px;color:var(--teal)">—</span></div>
+        <div class="sr"><span class="sn">Level</span><span class="sv" id="s-lv">—</span></div>
+        <div class="sr"><span class="sn">HP</span><span class="sv" id="s-hp">—</span></div>
+        <div class="bar"><div class="bfill" id="hpbar" style="width:0%;background:var(--green)"></div></div>
+        <div class="sr"><span class="sn">XP</span><span class="sv" id="s-xp">0</span></div>
+        <div class="sr"><span class="sn">Next Lv</span><span class="sv" id="s-xpn">100</span></div>
+        <div class="bar"><div class="bfill" id="xpbar" style="width:0%;background:var(--purple)"></div></div>
+        <div class="sr"><span class="sn">Gold</span><span class="sv ok" id="s-gold">—</span></div>
+        <div class="sr"><span class="sn">ATK</span><span class="sv" id="s-atk">—</span></div>
+        <div class="sr"><span class="sn">DEF</span><span class="sv" id="s-def">—</span></div>
+        <div id="regen-row"><span class="sn">Regen</span><span id="s-regen" style="font-size:10px;color:var(--green)">—</span></div>
+        <div class="bar"><div class="bfill" id="regenbar" style="width:100%;background:var(--green2)"></div></div>
+      </div>
+      <!-- LOCATION -->
+      <div class="panel">
+        <div class="plbl">Location</div>
+        <div id="loc-name">—</div><div id="zone-lbl"></div>
+      </div>
+      <!-- COMPANION -->
+      <div class="panel">
+        <div class="plbl">Companion</div>
+        <div id="comp-none" class="iempty">None — TAME or visit Menagerie</div>
+        <div id="comp-info" style="display:none">
+          <div class="sr"><span class="sn">Name</span><span class="sv" id="comp-name">—</span></div>
+          <div class="sr"><span class="sn">HP</span><span class="sv ok" id="comp-hp-val">—</span></div>
+          <div class="sr"><span class="sn">ATK</span><span class="sv" id="comp-atk">—</span></div>
+          <div class="bar"><div class="bfill" id="comp-hpbar" style="width:100%;background:var(--green)"></div></div>
+          <button class="qb" style="width:100%;margin-top:4px;font-size:9px" onclick="cmd('dismiss')">DISMISS</button>
+        </div>
+      </div>
+      <!-- ZOMBIES -->
+      <div class="panel">
+        <div class="plbl">Zombie Minions</div>
+        <div id="zombie-count" style="font-size:22px;font-weight:bold;color:#a060d0;text-align:center">0</div>
+        <div style="font-size:9px;color:var(--text3);text-align:center">/ 3 max</div>
+      </div>
+      <!-- QUEST LOG -->
+      <div class="panel" id="quest-panel">
+        <div class="plbl">Active Quests</div>
+        <div id="quest-list"><span class="iempty">No active quests — TALK to NPCs in town</span></div>
+        <button class="qb" style="width:100%;margin-top:6px;font-size:9px;color:#d0a060;border-color:#d0a060" onclick="cmd('quests')">FULL JOURNAL</button>
+      </div>
+      <!-- PARTY -->
+      <div class="panel" id="party-panel" style="display:none">
+        <div class="plbl">Party</div>
+        <div id="party-members"><span class="iempty">—</span></div>
+        <div style="font-size:9px;color:var(--text3);margin-top:4px" id="party-follow-status"></div>
+        <div style="display:flex;gap:3px;margin-top:6px;flex-wrap:wrap">
+          <button class="qb" style="flex:1;font-size:9px" onclick="cmd('party info')">INFO</button>
+          <button class="qb sk" style="flex:1;font-size:9px" onclick="cmd('party follow')">FOLLOW</button>
+          <button class="qb" style="flex:1;font-size:9px" onclick="cmd('pc ')">CHAT</button>
+          <button class="qb" style="width:100%;font-size:9px;color:var(--red);border-color:var(--red);margin-top:3px" onclick="cmd('party leave')">LEAVE PARTY</button>
+        </div>
+      </div>
+      <!-- GUILD -->
+      <div class="panel" id="guild-panel" style="display:none">
+        <div class="plbl">Guild</div>
+        <div id="guild-name" style="font-size:12px;color:var(--gold);font-family:var(--serif);margin-bottom:4px">—</div>
+        <div id="guild-info" style="font-size:10px;color:var(--text2);margin-bottom:2px">—</div>
+        <div id="guild-bank" style="font-size:10px;color:var(--gold)">—</div>
+        <div style="display:flex;gap:3px;margin-top:6px;flex-wrap:wrap">
+          <button class="qb" style="flex:1;font-size:9px" onclick="cmd('guild info')">INFO</button>
+          <button class="qb sh" style="flex:1;font-size:9px" onclick="cmd('gc ')">CHAT</button>
+          <button class="qb prof" style="flex:1;font-size:9px" onclick="cmd('guildhall')">HALL</button>
+        </div>
+      </div>
+      <!-- SKILLS -->
+      <div class="panel"><div class="plbl">Skills</div><div id="s-skills"><span class="iempty">—</span></div></div>
+      <!-- EQUIPPED -->
+      <div class="panel"><div class="plbl">Equipped</div><div id="s-equip"><span class="iempty">none</span></div></div>
+      <!-- INVENTORY -->
+      <div class="panel"><div class="plbl">Inventory</div><div id="s-inv"><span class="iempty">empty</span></div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const WS_URL=`${location.protocol==='https:'?'wss':'ws'}://${location.host}`;
+let ws, hist=[], hIdx=-1;
+let myAvatar='', profileIsOpen=false, profileIsSelf=false, bioEditing=false;
+let pickerMode='', pickerSelected='';
+
+// ── WS ────────────────────────────────────────────────────
+function connect(){
+  ws=new WebSocket(WS_URL);
+  ws.onopen=()=>{document.getElementById('conn-dot').classList.add('ok');document.getElementById('conn-txt').textContent='Connected';};
+  ws.onclose=()=>{document.getElementById('conn-dot').classList.remove('ok');document.getElementById('conn-txt').textContent='Disconnected — reconnecting...';pr('[ Connection lost. Reconnecting... ]','err');setTimeout(connect,3000);};
+  ws.onerror=()=>{};
+  ws.onmessage=e=>{try{handle(JSON.parse(e.data));}catch{}};
+}
+function send(obj){ if(ws&&ws.readyState===WebSocket.OPEN)ws.send(typeof obj==='string'?obj:JSON.stringify(obj)); }
+
+// ── MESSAGE HANDLER ───────────────────────────────────────
+function handle(msg){
+  switch(msg.type){
+    case'line':        pr(msg.text,msg.cls||''); break;
+    case'sidebar':     updateSidebar(msg); break;
+    case'system':      pr(msg.text,'system'); break;
+    case'regen':       updateRegen(msg.secs,msg.max); break;
+    case'profile':     openProfile(msg); break;
+    case'avatar_saved':onAvatarSaved(msg.avatar); break;
+    case'pick_race':   openPicker('race', msg.races); break;
+    case'pick_class':  openPicker('class', msg.classes); break;
+  }
+}
+
+// ── OUTPUT ────────────────────────────────────────────────
+const OUT=document.getElementById('output');
+function pr(text,cls=''){
+  const d=document.createElement('div');
+  d.className='line'+(cls?' '+cls:'');d.textContent=text;
+  OUT.appendChild(d);
+  while(OUT.children.length>1000)OUT.removeChild(OUT.firstChild);
+  OUT.scrollTop=OUT.scrollHeight;
+}
+
+// ── TILE PICKER ───────────────────────────────────────────
+function openPicker(mode, items){
+  pickerMode=mode; pickerSelected='';
+  const overlay=document.getElementById('picker-overlay');
+  const grid=document.getElementById('picker-grid');
+  const title=document.getElementById('picker-title');
+  const sub=document.getElementById('picker-subtitle');
+  const confirm=document.getElementById('picker-confirm');
+
+  title.textContent=mode==='race'?'CHOOSE YOUR RACE':'CHOOSE YOUR CLASS';
+  sub.textContent='Click a tile to select, then confirm your choice';
+  confirm.disabled=true;
+  confirm.textContent=mode==='race'?'CONFIRM RACE':'CONFIRM CLASS';
+  grid.className=mode==='race'?'race-grid':'class-grid';
+  grid.innerHTML='';
+
+  items.forEach(item=>{
+    const tile=document.createElement('div');
+    tile.className='tile';
+    tile.dataset.id=item.id;
+
+    // stat badges
+    const stats=[];
+    if(item.hp!==undefined){const sign=item.hp>=0?'+':'';stats.push(`HP <span>${sign}${item.hp}</span>`);}
+    if(item.atk!==undefined){const sign=item.atk>=0?'+':'';stats.push(`ATK <span>${sign}${item.atk}</span>`);}
+    if(item.def!==undefined){const sign=item.def>=0?'+':'';stats.push(`DEF <span>${sign}${item.def}</span>`);}
+    if(item.gold!==undefined&&item.gold>0)stats.push(`Gold <span>+${item.gold}</span>`);
+
+    tile.innerHTML=`
+      <div class="tile-name">${item.name}</div>
+      ${item.role?`<div class="tile-role">${item.role}</div>`:''}
+      ${item.bonus?`<div class="tile-bonus">✦ ${item.bonus}</div>`:''}
+      <div class="tile-desc">${item.desc||''}</div>
+      <div class="tile-stats">${stats.map(s=>`<div class="tile-stat">${s}</div>`).join('')}</div>
+      ${item.skills&&item.skills.length?`<div class="tile-skills"><strong>Skills:</strong> ${item.skills.join(' · ')}</div>`:''}
+    `;
+
+    tile.addEventListener('click',()=>{
+      grid.querySelectorAll('.tile').forEach(t=>t.classList.remove('selected'));
+      tile.classList.add('selected');
+      pickerSelected=item.id;
+      confirm.disabled=false;
+    });
+
+    grid.appendChild(tile);
+  });
+
+  overlay.classList.add('open');
+}
+
+function confirmPick(){
+  if(!pickerSelected)return;
+  document.getElementById('picker-overlay').classList.remove('open');
+  // Echo the choice in output so player sees what they picked
+  const label=pickerMode==='race'?'Race':'Class';
+  pr(`> ${pickerSelected}`,'prompt');
+  send(pickerSelected);
+  pickerMode=''; pickerSelected='';
+}
+
+// Close picker on overlay background click
+document.getElementById('picker-overlay').addEventListener('click',e=>{
+  if(e.target===document.getElementById('picker-overlay'))return; // don't close on bg click during registration
+});
+
+// ── SIDEBAR UPDATE ────────────────────────────────────────
+function updateSidebar(d){
+  if(d.name){document.getElementById('av-name').textContent=d.name;}
+  if(d.className&&d.raceName){document.getElementById('av-sub').textContent=`${d.raceName} ${d.className}`;}
+  document.getElementById('s-race').textContent  =d.raceName||'—';
+  document.getElementById('s-class').textContent =d.className||'—';
+  document.getElementById('s-lv').textContent    =d.level||'—';
+  document.getElementById('s-gold').textContent  =d.gold!==undefined?d.gold:'—';
+  document.getElementById('s-atk').textContent   =d.atk!==undefined?d.atk:'—';
+  document.getElementById('s-def').textContent   =d.def!==undefined?d.def:'—';
+  document.getElementById('s-xp').textContent    =d.xp||0;
+  document.getElementById('s-xpn').textContent   =d.xpNext||100;
+  document.getElementById('loc-name').textContent=d.room||'—';
+  document.getElementById('zone-lbl').textContent=d.zone||'';
+  const hpPct=d.maxhp?Math.max(0,Math.round(d.hp/d.maxhp*100)):0;
+  const hpEl=document.getElementById('s-hp');
+  hpEl.textContent=`${d.hp}/${d.maxhp}`;
+  hpEl.className='sv'+(hpPct<25?' danger':hpPct<50?' warn':'');
+  const hbar=document.getElementById('hpbar');
+  hbar.style.width=hpPct+'%';hbar.style.background=hpPct<25?'var(--red)':hpPct<50?'var(--gold)':'var(--green)';
+  const xpPct=d.xpNext?Math.min(100,Math.round(d.xp/d.xpNext*100)):0;
+  document.getElementById('xpbar').style.width=xpPct+'%';
+  document.getElementById('combat-banner').classList.toggle('active',!!d.inCombat);
+  document.getElementById('shop-banner').classList.toggle('active',!!d.shopNearby);
+  document.getElementById('shrine-banner').classList.toggle('active',!!d.shrineNearby);
+  const ci=document.getElementById('comp-info'),cn=document.getElementById('comp-none');
+  if(d.companion){
+    ci.style.display='';cn.style.display='none';
+    document.getElementById('comp-name').textContent=d.companion.name;
+    document.getElementById('comp-hp-val').textContent=`${d.companion.hp}/${d.companion.maxhp}`;
+    document.getElementById('comp-atk').textContent=d.companion.atk;
+    const cpct=d.companion.maxhp?Math.round(d.companion.hp/d.companion.maxhp*100):100;
+    const cb=document.getElementById('comp-hpbar');
+    cb.style.width=cpct+'%';cb.style.background=cpct<30?'var(--red)':cpct<60?'var(--gold)':'var(--green)';
+  }else{ci.style.display='none';cn.style.display='';}
+  document.getElementById('zombie-count').textContent=d.zombieCount||0;
+  document.getElementById('s-skills').innerHTML=(d.skills&&d.skills.length)?d.skills.map(s=>`<div class="sk-row"><span class="sk-name">${s.name}</span><span class="sk-cd ${s.cd===0?'rdy':''}">${s.cd===0?'READY':s.cd+'t'}</span></div>`).join(''):'<span class="iempty">—</span>';
+  document.getElementById('s-equip').innerHTML=(d.equipped&&d.equipped.length)?d.equipped.map(i=>`<div class="iitem eq">${i}</div>`).join(''):'<span class="iempty">none</span>';
+  document.getElementById('s-inv').innerHTML=(d.inventory&&d.inventory.length)?d.inventory.map(i=>`<div class="iitem">${i}</div>`).join(''):'<span class="iempty">empty</span>';
+  if(d.onlineCount!==undefined)document.getElementById('online').textContent=`${d.onlineCount} online`;
+  // Quest panel
+  if(d.quests){
+    const activeQuests=Object.entries(d.quests).filter(([,v])=>v==='active');
+    const qlist=document.getElementById('quest-list');
+    if(qlist){
+      if(activeQuests.length){
+        qlist.innerHTML=activeQuests.map(([qid])=>{
+          const titles={tavern_rats:"Tormund's Rat Problem",missing_merchant:'The Missing Merchant',
+            grimwald_ore:"Grimwald's Special Order",mira_herbs:"Mira's Herb Supply",
+            mira_venom:'Serpent Venom',temple_blessing:'The Temple Blessing',
+            aldric_relic:'The Fallen Relic',broker_delivery:'A Discreet Delivery',
+            pip_runaway:"Pip's Runaway Raven",shrine_trials:'The Shrine Trials'};
+          return `<div class="iitem" style="color:#d0a060">▶ ${titles[qid]||qid}</div>`;
+        }).join('');
+      } else {
+        qlist.innerHTML='<span class="iempty">No active quests</span>';
+      }
+    }
+  }
+  // Party panel
+  const partyPanel=document.getElementById('party-panel');
+  const partyMembers=document.getElementById('party-members');
+  const partyFollowStatus=document.getElementById('party-follow-status');
+  if(d.party&&d.party.length>0){
+    partyPanel.style.display='';
+    partyMembers.innerHTML=d.party.map(m=>{
+      const isMe=m.name===d.name;
+      const color=m.isLeader?'var(--gold)':isMe?'var(--accent)':'var(--text2)';
+      const tag=m.isLeader?' ★':(m.following?' →':'');
+      return `<div class="iitem" style="color:${color}">${m.name} Lv${m.level}${tag}</div>`;
+    }).join('');
+    if(partyFollowStatus){
+      const amLeader=d.party.find(m=>m.name===d.name&&m.isLeader);
+      if(amLeader) partyFollowStatus.textContent='You are the leader. Members with → follow you.';
+      else if(d.partyFollow) partyFollowStatus.textContent='Following leader → moves pull you along.';
+      else partyFollowStatus.textContent='Not following. Tap FOLLOW to move with leader.';
+    }
+  }else{partyPanel.style.display='none';}
+  // Guild panel
+  const guildPanel=document.getElementById('guild-panel');
+  if(d.guildName){
+    guildPanel.style.display='';
+    document.getElementById('guild-name').textContent=d.guildName;
+    document.getElementById('guild-info').textContent=`${d.guildMembers} member${d.guildMembers!==1?'s':''}`;
+    const bankEl=document.getElementById('guild-bank');
+    if(bankEl)bankEl.textContent=`Bank: ${d.guildBank}g`;
+  }else{guildPanel.style.display='none';}
+}
+
+function updateRegen(secs,max){
+  const mins=Math.floor(secs/60),s=secs%60;
+  const el=document.getElementById('s-regen'),bar=document.getElementById('regenbar');if(!el)return;
+  el.textContent=secs<=0?'soon':`${mins}:${String(s).padStart(2,'0')}`;
+  const pct=Math.round(secs/(max||180)*100);
+  bar.style.width=pct+'%';bar.style.background=pct<20?'var(--green)':'var(--green2)';
+}
+
+// ── AVATAR ────────────────────────────────────────────────
+// Keep file input reference fresh — always grab it when needed
+function getFileInput(){
+  // Remove old listener if any, then re-add — prevents stacking handlers
+  const old=document.getElementById('avatar-file-input');
+  const fresh=old.cloneNode(false); // clone without event listeners
+  old.parentNode.replaceChild(fresh,old);
+  fresh.addEventListener('change',handleAvatarFile);
+  return fresh;
+}
+
+function triggerUpload(){
+  const fi=getFileInput();
+  fi.value=''; // clear so same file can be selected again
+  fi.click();
+}
+
+function handleAvatarFile(e){
+  const file=e.target.files[0];if(!file)return;
+  if(!file.type.startsWith('image/')){pr('Only image files are accepted.','err');return;}
+  // Resize large images client-side to keep transfer small but keep 2:3 ratio sharp
+  const MAX_W=400, MAX_H=600, MAX_BYTES=1.5*1024*1024;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{
+      const canvas=document.createElement('canvas');
+      let w=img.width,h=img.height;
+      // Scale down if too large, preserving aspect ratio
+      if(w>MAX_W||h>MAX_H){
+        const scale=Math.min(MAX_W/w,MAX_H/h);
+        w=Math.round(w*scale);h=Math.round(h*scale);
+      }
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      // Try quality 0.9 first, drop to 0.7 if still too big
+      let data=canvas.toDataURL('image/jpeg',0.9);
+      if(data.length>MAX_BYTES)data=canvas.toDataURL('image/jpeg',0.7);
+      setLocalAvatar(data);
+      send({type:'set_avatar',data});
+    };
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function setLocalAvatar(src){
+  myAvatar=src||'';
+  const img=document.getElementById('avatar-img');
+  const ph=document.getElementById('avatar-placeholder');
+  const hover=document.getElementById('avatar-hover');
+  if(src){img.src=src;img.style.display='block';ph.style.display='none';hover.style.display='flex';}
+  else{img.src='';img.style.display='none';ph.style.display='flex';hover.style.display='none';}
+  // make the wrap clickable to change
+  document.getElementById('avatar-img-wrap').onclick=src?triggerUpload:triggerUpload;
+}
+
+function clearAvatar(){setLocalAvatar('');send({type:'clear_avatar'});}
+
+function onAvatarSaved(avatar){
+  myAvatar=avatar||'';
+  // If profile modal open and it's self, update the portrait there too
+  if(profileIsOpen&&profileIsSelf){
+    const img=document.getElementById('profile-card-avatar');
+    const ph=document.getElementById('profile-card-avatar-ph');
+    if(avatar){img.src=avatar;img.style.display='block';ph.style.display='none';}
+    else{img.style.display='none';ph.style.display='flex';}
+  }
+}
+
+// ── PROFILE MODAL ─────────────────────────────────────────
+function openProfile(d){
+  profileIsOpen=true; profileIsSelf=!!d.isSelf; bioEditing=false;
+  const img=document.getElementById('profile-card-avatar'),ph=document.getElementById('profile-card-avatar-ph');
+  if(d.avatar){img.src=d.avatar;img.style.display='block';ph.style.display='none';}
+  else{img.style.display='none';ph.style.display='flex';}
+  document.getElementById('profile-card-name').textContent=d.name||'Unknown';
+  document.getElementById('profile-card-sub').textContent=`${d.className||'?'} — Level ${d.level||'?'}`;
+  document.getElementById('profile-card-race').textContent=d.raceName||'';
+  document.getElementById('pc-level').textContent=d.level||'—';
+  document.getElementById('pc-hp').textContent=`${d.hp}/${d.maxhp}`;
+  document.getElementById('pc-atk').textContent=d.atk||'—';
+  document.getElementById('pc-def').textContent=d.def||'—';
+  document.getElementById('pc-xp').textContent=`${d.xp}/${d.xpNext}`;
+  const gr=document.getElementById('pc-gold-row');
+  if(d.gold!=null){gr.style.display='';document.getElementById('pc-gold').textContent=d.gold+'g';}else gr.style.display='none';
+  const cr=document.getElementById('pc-companion-row');
+  if(d.companion){cr.style.display='';document.getElementById('pc-companion').textContent=d.companion;}else cr.style.display='none';
+  const zr=document.getElementById('pc-zombie-row');
+  if(d.zombieCount>0){zr.style.display='';document.getElementById('pc-zombies').textContent=`${d.zombieCount} zombie minion${d.zombieCount!==1?'s':''}`;}else zr.style.display='none';
+  document.getElementById('pc-gear').innerHTML=(d.equipped&&d.equipped.length)?d.equipped.map(e=>`<div class="profile-gear">${e}</div>`).join(''):'<span style="font-size:10px;color:var(--text3)">Nothing equipped</span>';
+  const bioText=document.getElementById('profile-bio-text');
+  bioText.textContent=d.bio||'No biography set.';
+  bioText.className=d.bio?'':'empty';
+  document.getElementById('profile-bio-edit').style.display='none';
+  bioText.style.display='';
+  document.getElementById('profile-edit-bio-btn').style.display=d.isSelf?'':'none';
+  document.getElementById('profile-save-bio-btn').style.display='none';
+  document.getElementById('profile-clear-avatar-btn').style.display=(d.isSelf&&d.avatar)?'':'none';
+  document.getElementById('profile-overlay').classList.add('open');
+}
+
+function closeProfile(){
+  if(bioEditing)cancelBioEdit();
+  document.getElementById('profile-overlay').classList.remove('open');
+  profileIsOpen=false;
+}
+
+function toggleBioEdit(){
+  bioEditing=true;
+  const bioText=document.getElementById('profile-bio-text');
+  const bioEdit=document.getElementById('profile-bio-edit');
+  const ta=document.getElementById('profile-bio-textarea');
+  const cur=bioText.classList.contains('empty')?'':bioText.textContent;
+  ta.value=cur==='No biography set.'?'':cur;
+  updateBioChars();
+  bioText.style.display='none';bioEdit.style.display='flex';
+  document.getElementById('profile-edit-bio-btn').style.display='none';
+  document.getElementById('profile-save-bio-btn').style.display='';
+  ta.focus();
+}
+
+function cancelBioEdit(){
+  bioEditing=false;
+  document.getElementById('profile-bio-text').style.display='';
+  document.getElementById('profile-bio-edit').style.display='none';
+  document.getElementById('profile-edit-bio-btn').style.display='';
+  document.getElementById('profile-save-bio-btn').style.display='none';
+}
+
+function updateBioChars(){
+  const ta=document.getElementById('profile-bio-textarea');
+  document.getElementById('profile-bio-chars').textContent=`${ta.value.length} / 300`;
+}
+
+function saveBio(){
+  const ta=document.getElementById('profile-bio-textarea');
+  const newBio=ta.value.trim().slice(0,300);
+  send(`bio ${newBio}`);
+  const bioText=document.getElementById('profile-bio-text');
+  bioText.textContent=newBio||'No biography set.';
+  bioText.className=newBio?'':'empty';
+  cancelBioEdit();
+}
+
+document.getElementById('profile-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('profile-overlay'))closeProfile();});
+document.getElementById('profile-bio-textarea').addEventListener('input',updateBioChars);
+
+// ── INPUT ─────────────────────────────────────────────────
+function cmd(c){const inp=document.getElementById('cmd');inp.value=c;inp.focus();if(!c.endsWith(' '))submit();}
+function submit(){
+  const inp=document.getElementById('cmd'),val=inp.value.trim();if(!val)return;
+  inp.value='';inp.focus();
+  hist.unshift(val);if(hist.length>80)hist.pop();hIdx=-1;
+  if(!ws||ws.readyState!==WebSocket.OPEN){pr('Not connected.','err');return;}
+  ws.send(val);
+}
+document.getElementById('cmd').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){submit();return;}
+  if(e.key==='Escape'){if(profileIsOpen)closeProfile();return;}
+  if(e.key==='ArrowUp'){if(hIdx<hist.length-1){hIdx++;document.getElementById('cmd').value=hist[hIdx];}e.preventDefault();}
+  if(e.key==='ArrowDown'){if(hIdx>0){hIdx--;document.getElementById('cmd').value=hist[hIdx];}else{hIdx=-1;document.getElementById('cmd').value='';}e.preventDefault();}
+});
+
+// ── INIT ──────────────────────────────────────────────────
+// Wire up avatar wrap click
+document.getElementById('avatar-img-wrap').addEventListener('click', triggerUpload);
+connect();
+document.getElementById('cmd').focus();
+</script>
+</body>
+</html>
