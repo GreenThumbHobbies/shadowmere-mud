@@ -193,6 +193,22 @@ const MOB_PORTRAITS = {
   'Skeleton Warrior':   'skel_warrior.jpg',
 };
 
+
+// ── Level-scaled limits ───────────────────────────────────────────────────
+function maxCompanions(p){
+  // 1 companion base, +1 per 10 levels
+  return 1 + Math.floor((p.level||1) / 10);
+}
+function maxZombies(p){
+  // 1 zombie base, +1 per 10 levels
+  return 1 + Math.floor((p.level||1) / 10);
+}
+function companionSlotInfo(p){
+  const max=maxCompanions(p);
+  const cur=(p.companions||[p.companion].filter(Boolean)).length;
+  return {max, cur};
+}
+
 // ── Skill execution ───────────────────────────────────────────────────────
 function execSkill(ws, p, sid, m) {
   const D = (base, bonus=0, nodef=false) => {
@@ -409,9 +425,13 @@ const SHOPS = {
 
 // ── Tameable monsters ─────────────────────────────────────────────────────
 const TAMEABLE = {
-  'Timber Wolf':{atk:6,hp:30},'Giant Rat':{atk:3,hp:15},
-  'Swamp Serpent':{atk:7,hp:25},'Forest Troll':{atk:9,hp:45},
-  'Young Dragon':{atk:14,hp:60},'Bog Witch':{atk:10,hp:40}
+  // name: {atk, hp, levelReq} — player must be >= levelReq to tame
+  'Giant Rat':     {atk:3,  hp:15, levelReq:1 },
+  'Timber Wolf':   {atk:6,  hp:30, levelReq:2 },
+  'Swamp Serpent': {atk:7,  hp:25, levelReq:3 },
+  'Forest Troll':  {atk:9,  hp:45, levelReq:5 },
+  'Bog Witch':     {atk:10, hp:40, levelReq:8 },
+  'Young Dragon':  {atk:14, hp:60, levelReq:12},
 };
 
 // ── Crafting recipes ──────────────────────────────────────────────────────
@@ -1106,6 +1126,9 @@ function sidebar(ws, p) {
     inCombat:p.inCombat, shopNearby:!!(world[p.room]?.shop),
     shrineNearby:!!(world[p.room]?.teleport),
     companion:p.companion?{name:p.companion.name,hp:p.companion.hp,atk:p.companion.atk,maxhp:p.companion.maxhp}:null,
+    companions:(p.companions||[]).map(c=>({name:c.name,hp:c.hp,atk:c.atk,maxhp:c.maxhp})),
+    companionSlots:maxCompanions(p),
+    zombieSlots:maxZombies(p),
     zombieCount:(p.zombies||[]).length,
     party:partyData, partyFollow:!!p.partyFollow,
     quests:p.quests||{},
@@ -1133,7 +1156,8 @@ function describeRoom(ws, p) {
   }
   (rm.monsters||[]).filter(m=>!m.dead).forEach(m => say(ws, `  ⚔  ${m.name} [HP:${m.hp}/${m.maxhp}]`, 'combat'));
   if (p.zombies&&p.zombies.length) say(ws, `  🧟 Zombies: ${p.zombies.map(z=>z.name).join(', ')}`, 'narrate');
-  if (p.companion) say(ws, `  🐾 ${p.companion.name} [HP:${p.companion.hp}/${p.companion.maxhp} ATK:${p.companion.atk}]`, 'narrate');
+  const _showComps=p.companions&&p.companions.length?p.companions:(p.companion?[p.companion]:[]);
+  if(_showComps.length)_showComps.forEach(c=>say(ws,`  🐾 ${c.name} [HP:${c.hp}/${c.maxhp} ATK:${c.atk}]`,'narrate'));
   if (rm.items&&rm.items.length) say(ws, `  Items: ${rm.items.join(', ')}`, 'loot');
   if (rm.shop) say(ws, '  🛒 Shop here — SHOP to browse.', 'shop');
   if (rm.teleport) say(ws, '  ✦ Adventure Shrine — SHRINE to see destinations, TELEPORT [1-8] to travel.', 'skill');
@@ -1168,29 +1192,43 @@ function useConsumable(ws, p, name) {
 
 // ── Taming ────────────────────────────────────────────────────────────────
 function doTame(ws, p) {
-  if (p.companion) return say(ws, `Already have ${p.companion.name}. DISMISS first.`, 'err');
+  if(!p.companions) p.companions = p.companion ? [p.companion] : [];
+  const maxC = maxCompanions(p);
+  if (p.companions.length >= maxC) {
+    say(ws, `You can control ${maxC} companion${maxC>1?'s':''} at Level ${p.level}. (Gain +1 slot every 10 levels.) DISMISS [name] to release one.`, 'err');
+    return;
+  }
   const rm = world[p.room];
-  const tgt = (rm.monsters||[]).find(m => !m.dead && TAMEABLE[m.name]);
+  // Can tame in combat (current enemy) or from room monsters
+  let tgt = p.inCombat && p.enemy && TAMEABLE[p.enemy.name] ? p.enemy
+    : (rm.monsters||[]).find(m => !m.dead && TAMEABLE[m.name]);
   if (!tgt) return say(ws, 'No tameable creatures here.', 'err');
+  const td = TAMEABLE[tgt.name];
+  // Level requirement check
+  if ((p.level||1) < (td.levelReq||1)) {
+    return say(ws, `You need Level ${td.levelReq} to tame a ${tgt.name}. You are Level ${p.level}.`, 'err');
+  }
   const ti = p.inventory.findIndex(i => i.toLowerCase()==='beast treat');
   if (ti===-1) return say(ws, 'Need a Beast Treat (buy at Apothecary, 15g).', 'err');
   const chance = 35 + (p.classId==='beastmaster'?35:0) + (p.raceId==='beastkin'?25:0);
   p.inventory.splice(ti, 1);
   if (rnd(1,100) <= chance) {
-    const td = TAMEABLE[tgt.name];
-    p.companion = {name:tgt.name, atk:td.atk, hp:td.hp, maxhp:td.hp};
-    // Don't kill — remove from room monsters peacefully (animal follows willingly)
-    const idx = (rm.monsters||[]).indexOf(tgt);
-    if(idx>=0) rm.monsters.splice(idx,1);
-    // End combat peacefully
-    p.inCombat=false; p.enemy=null;
-    say(ws, `You offer the treat slowly. The ${tgt.name} sniffs it... then nuzzles your hand.`, 'narrate');
-    say(ws, `✓ ${tgt.name} is now your loyal companion!`, 'ok');
+    const newComp = {name:tgt.name, atk:td.atk, hp:td.hp, maxhp:td.hp};
+    p.companions.push(newComp);
+    p.companion = p.companions[0]; // backwards compat for sidebar
+    rm.monsters = (rm.monsters||[]).filter(m => m !== tgt);
+    if (p.inCombat && p.enemy === tgt) {
+      p.inCombat = false; p.enemy = null;
+      say(ws, `You offer the treat. The ${tgt.name} stills... then bows its head. Combat ends.`, 'narrate');
+    } else {
+      say(ws, `You offer the treat slowly. The ${tgt.name} sniffs it... then nuzzles your hand.`, 'narrate');
+    }
+    say(ws, `✓ ${tgt.name} is now your loyal companion! [ATK:${newComp.atk} HP:${newComp.hp}]`, 'ok');
+    say(ws, `  ${p.companions.length}/${maxC} companion slot${maxC>1?'s':''} used. DISMISS [name] to release.`, 'sys');
     sayRoom(p.room, `${p.name} tames a ${tgt.name}!`, 'narrate', ws);
     checkAch(ws, p, 'tamer');
   } else {
     say(ws, `The ${tgt.name} sniffs the treat but backs away. Beast Treat consumed.`, 'err');
-    // On failure the animal is still alive — combat continues if in combat
   }
   sidebar(ws, p);
 }
@@ -1198,21 +1236,31 @@ function doTame(ws, p) {
 // ── Raise dead ────────────────────────────────────────────────────────────
 function doRaiseDead(ws, p) {
   if (!p.zombies) p.zombies = [];
-  if (p.zombies.length >= 3) return say(ws, 'Already control 3 zombies — maximum.', 'err');
+  const maxZ = maxZombies(p);
+  if (p.zombies.length >= maxZ) {
+    say(ws, `You can only control ${maxZ} zombie${maxZ>1?'s':''} at Level ${p.level}. (Gain another slot every 10 levels). Release one with DISMISS ZOMBIE [#].`, 'err');
+    return;
+  }
   const rm = world[p.room];
-  // Check corpse list first (preferred), fall back to dead monsters
   if(!rm.corpses) rm.corpses=[];
-  const corpse = rm.corpses.find(c=>!c.raised) ||
-                 (rm.monsters||[]).find(m=>m.dead);
-  if (!corpse) return say(ws, 'No fallen corpses here. Kill something first, then use Raise Dead.', 'err');
-  // Mark as raised so it can't be raised twice
-  if(corpse.raised!==undefined) corpse.raised=true;
-  const z = {name:`Zombie ${corpse.name}`, hp:Math.floor((corpse.maxhp||20)*0.75), maxhp:Math.floor((corpse.maxhp||20)*0.75), atk:Math.floor((corpse.atk||5)*0.7)};
+  const corpse = rm.corpses.find(c=>!c.raised) || (rm.monsters||[]).find(m=>m.dead&&!m.raised);
+  if (!corpse) return say(ws, 'No unraised corpses here. Kill something first, then Raise Dead.', 'err');
+  // Level check — can only raise enemies equal or lower level (approx by XP)
+  const corpseLevel = Math.max(1, Math.floor((corpse.xp||20) / 50));
+  if (corpseLevel > (p.level||1)) {
+    say(ws, `This creature is too powerful to raise. You need Level ${corpseLevel}+ to animate a ${corpse.name}.`, 'err');
+    return;
+  }
+  corpse.raised = true;
+  // Zombies have exactly HALF the original monster's HP
+  const zHp = Math.max(5, Math.floor((corpse.maxhp||20) * 0.5));
+  const zAtk = Math.max(1, Math.floor((corpse.atk||5) * 0.65));
+  const z = {name:`Zombie ${corpse.name}`, hp:zHp, maxhp:zHp, atk:zAtk, srcLevel:corpseLevel};
   p.zombies.push(z);
-  say(ws, `Dark energy surges through the fallen ${corpse.name}. It rises to serve you!`, 'skill');
-  say(ws, `  Zombie ${corpse.name} [HP:${z.hp} ATK:${z.atk}] added to your undead army.`, 'skill');
+  say(ws, `Dark energy tears through the fallen ${corpse.name} — it rises to serve you!`, 'skill');
+  say(ws, `  Zombie ${corpse.name} [HP:${z.hp}/${z.maxhp} ATK:${z.atk}] — ${p.zombies.length}/${maxZ} zombie slots used.`, 'skill');
   sayRoom(p.room, `${p.name} raises ${corpse.name} from the dead!`, 'narrate', ws);
-  if (p.zombies.length >= 3) checkAch(ws, p, 'necro');
+  if(p.zombies.length>=3) checkAch(ws,p,'necro');
   sidebar(ws,p);
 }
 
@@ -1312,7 +1360,9 @@ function playerAttack(ws, p) {
   // Update monster HP on portrait
   const _port=MOB_PORTRAITS[m.name];if(_port)raw(ws,{type:'mob_hp',hp:Math.max(0,m.hp),maxhp:m.maxhp});
   sayRoom(p.room, `${p.name} hits ${m.name} for ${d}!`, 'combat', ws);
-  if (p.companion&&p.companion.hp>0) { const cd=rnd(Math.floor(p.companion.atk*0.6),p.companion.atk); m.hp-=cd; say(ws,`${p.companion.name} attacks for ${cd}!`,'narrate'); }
+  // All companions attack
+  const _comps = p.companions && p.companions.length ? p.companions : (p.companion ? [p.companion] : []);
+  _comps.forEach(c=>{ if(c&&c.hp>0){ const cd=rnd(Math.floor(c.atk*0.6),c.atk); m.hp-=cd; say(ws,`${c.name} attacks for ${cd}!`,'narrate'); }});
   if (p.zombies&&p.zombies.length) { let zt=0; p.zombies.forEach(z=>{const zd=rnd(Math.floor(z.atk*0.5),z.atk);m.hp-=zd;zt+=zd;}); say(ws,`Your ${p.zombies.length} zombie(s) deal ${zt} damage!`,'narrate'); }
   if (m.hp<=0) return killMonster(ws,p,m);
   monsterAttack(ws,p,m);
@@ -2255,9 +2305,50 @@ function handleCmd(ws,p,raw){
       say(ws,'  ✦ = usable outside combat  ★ = specialization','sys');break;
     }
     case'tame':doTame(ws,p);break;
-    case'dismiss':{if(!p.companion)return say(ws,'No companion.','sys');say(ws,`${p.companion.name} parts ways.`,'narrate');p.companion=null;sidebar(ws,p);break;}
-    case'companion':case'pet':{if(!p.companion)return say(ws,'No companion.','sys');say(ws,`🐾 ${p.companion.name} HP:${p.companion.hp}/${p.companion.maxhp} ATK:${p.companion.atk}`,'narrate');break;}
-    case'zombies':{if(!p.zombies||!p.zombies.length)return say(ws,'No zombies.','sys');p.zombies.forEach((z,i)=>say(ws,`  Zombie ${i+1}: ${z.name} [HP:${z.hp} ATK:${z.atk}]`,'narrate'));break;}
+    case'dismiss':{
+      if(!p.companions) p.companions = p.companion ? [p.companion] : [];
+      if(!p.companions.length && !p.zombies?.length) return say(ws,'No companions or zombies to dismiss.','sys');
+      if(rest.toLowerCase().startsWith('zombie')){
+        // DISMISS ZOMBIE [#]
+        const num=parseInt(rest.split(' ')[1]||'1')-1;
+        if(!p.zombies||!p.zombies[num])return say(ws,'No zombie at that number. ZOMBIES to list.','err');
+        const zn=p.zombies.splice(num,1)[0];
+        say(ws,`${zn.name} crumbles to dust.`,'narrate');sidebar(ws,p);break;
+      }
+      if(!rest){
+        // No arg — dismiss first companion or show list
+        if(p.companions.length===1){
+          const c=p.companions.pop(); p.companion=null;
+          say(ws,`${c.name} parts ways and returns to the wild.`,'narrate');sidebar(ws,p);break;
+        }
+        if(p.companions.length>1){
+          say(ws,'Multiple companions — DISMISS [name] to release a specific one:','sys');
+          p.companions.forEach((c,i)=>say(ws,`  ${i+1}. ${c.name} [HP:${c.hp} ATK:${c.atk}]`,'sys'));
+          break;
+        }
+        return say(ws,'No companions.','sys');
+      }
+      // DISMISS [name]
+      const ci=p.companions.findIndex(c=>c.name.toLowerCase().includes(rest.toLowerCase()));
+      if(ci===-1)return say(ws,`No companion named "${rest}".`,'err');
+      const dismissed=p.companions.splice(ci,1)[0];
+      p.companion=p.companions[0]||null;
+      say(ws,`${dismissed.name} parts ways and returns to the wild.`,'narrate');
+      sidebar(ws,p);break;
+    }
+    case'companion':case'companions':case'pet':{
+      const _comps2=p.companions&&p.companions.length?p.companions:(p.companion?[p.companion]:[]);
+      if(!_comps2.length)return say(ws,'No companions. Tame creatures with TAME skill + Beast Treat.','sys');
+      say(ws,`── Companions (${_comps2.length}/${maxCompanions(p)} slots) ───────────`,'sys');
+      _comps2.forEach((c,i)=>say(ws,`  ${i+1}. 🐾 ${c.name} [HP:${c.hp}/${c.maxhp} ATK:${c.atk}]`,'narrate'));
+      say(ws,'DISMISS [name] to release one.','sys');break;
+    }
+    case'zombies':{
+      if(!p.zombies||!p.zombies.length)return say(ws,`No zombies. Kill an enemy then use RAISE DEAD. (${maxZombies(p)} slot${maxZombies(p)>1?'s':''} available at Level ${p.level})`,'sys');
+      say(ws,`── Zombies (${p.zombies.length}/${maxZombies(p)} slots) ────────────`,'sys');
+      p.zombies.forEach((z,i)=>say(ws,`  ${i+1}. 🧟 ${z.name} [HP:${z.hp}/${z.maxhp} ATK:${z.atk}]`,'narrate'));
+      say(ws,'DISMISS ZOMBIE [#] to release one.  CORPSE BOMB to detonate.','sys');break;
+    }
     case'shop':case'list':{
       const sk=world[p.room]?.shop;if(!sk)return say(ws,'No shop here.','err');
       const sh=SHOPS[sk];say(ws,`╔══ ${sh.name} ══╗`,'shop');say(ws,sh.greet,'narrate');
