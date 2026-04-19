@@ -599,7 +599,7 @@ const WT = {
   mid_dungeon:     {zone:'THE DUNGEON — LOWER',name:'The Descent',desc:'The corridor narrows. Stone older than memory. The cold is profound.',exits:{north:'dungeon_armory',south:'boss_antechamber',east:'dragon_lair',west:'void_temple',up:'temple_crypt'},base:[],mon:[M('shadow_wraith','Shadow Wraith',30,8,2,75,15,'void crystal')],shop:null},
   dragon_lair:     {zone:'THE DUNGEON — LOWER',name:"Dragon's Lair",desc:'A vast scorched cavern. A young dragon fixes burning eyes on you.',exits:{west:'mid_dungeon'},base:['dragon scale'],mon:[M('young_dragon','Young Dragon',55,12,5,180,60,'dragon scale')],shop:null},
   void_temple:     {zone:'THE DUNGEON — LOWER',name:'Void Temple',desc:'Cultists chant before an altar pulsing with violet energy.',exits:{east:'mid_dungeon'},base:['void crystal','ancient tome'],mon:[M('void_cultist','Void Cultist',25,7,2,60,14,'cultist robe'),M('void_archon','Void Archon',38,10,3,110,28,'void crystal')],shop:null},
-  boss_antechamber:{zone:'THE DUNGEON — LOWER',name:'Antechamber of the Lich',desc:'Skeletal soldiers at attention. A black iron door looms north.',exits:{north:'boss_chamber',south:'mid_dungeon'},base:[],mon:[M('lich_champion',"Lich's Champion",45,11,4,150,35,'enchanted gem')],shop:null},
+  boss_antechamber:{zone:'THE DUNGEON — LOWER',name:'Antechamber of the Lich',desc:'Skeletal soldiers at attention. A black iron door looms north. The passage south is sealed — there is no retreat from here.',exits:{north:'boss_chamber'},base:[],mon:[M('lich_champion',"Lich's Champion",45,11,4,150,35,'enchanted gem')],shop:null},
   boss_chamber:    {zone:'THE DUNGEON — LOWER',name:"The Lich's Chamber",desc:'Arcane sigils burn in cold blue fire. Upon a throne of bones sits the Dungeon Lich.',exits:{south:'boss_antechamber'},base:[],mon:[M('dungeon_lich','Dungeon Lich',80,14,5,500,100,"Lich's Crown")],shop:null},
   // Adventure zones
   volcanic_peak:   {zone:'VOLCANIC PEAK',name:'Crater Rim',desc:'Scorched black rock. Lava rivers below. Fire elementals patrol the ridge.',exits:{south:'volcanic_tunnels'},base:['obsidian shard'],mon:[M('fire_elem','Fire Elemental',40,10,3,110,20,'ember shard'),M('lava_golem','Lava Golem',55,13,5,160,30,'magma core')],shop:null},
@@ -678,9 +678,13 @@ setInterval(respawnWorld, 5*60*1000);
 // ── Guilds ────────────────────────────────────────────────────────────────
 let guilds = {};
 function loadGuilds() { try { if(!fs.existsSync(DATA_DIR))fs.mkdirSync(DATA_DIR,{recursive:true}); guilds = JSON.parse(fs.readFileSync(GUILD_FILE,'utf8')); } catch { guilds = {}; } }
+function ensureGuildStorage(){ Object.values(guilds).forEach(g=>{ if(!g.storage)g.storage=[]; }); }
 function saveGuilds() { fs.writeFileSync(GUILD_FILE, JSON.stringify(guilds,null,2)); }
 loadGuilds();
+ensureGuildStorage();
 console.log('[Boot] Guilds loaded —', Object.keys(guilds).length, 'guilds');
+// Rebuild guild rooms for any existing guilds
+Object.keys(guilds).forEach(gid=>{ try{buildGuildRooms(gid);}catch(e){} });
 
 
 // ── Housing / Room Rental ─────────────────────────────────────────────────
@@ -1182,7 +1186,7 @@ function hydrate(data) {
   if(!p.regenTimer || p.regenTimer < 10) p.regenTimer = 900;
 
   // room validation — if saved room no longer exists, reset
-  if(p.room && !WT[p.room] && !p.room.startsWith('private_') && !p.room.startsWith('hall_')) {
+  if(p.room && !WT[p.room] && !p.room.startsWith('private_') && !p.room.startsWith('hall_') && !p.room.startsWith('vault_') && !p.room.startsWith('storage_') && !p.room.startsWith('bed_')) {
     console.log(`[MIGRATE] Resetting invalid room "${p.room}" for ${p.username}`);
     p.room = 'town_square';
   }
@@ -1987,13 +1991,136 @@ function guildCmd(ws,p,sub,rest){
   }
 }
 
+// ── Guild room commands ───────────────────────────────────────────────────
+function doGuildVaultCmd(ws,p,cmd,amount){
+  const rm=world[p.room]; if(!rm||!rm.guildVault)return say(ws,'Not in the guild vault.','err');
+  const g=guilds[rm.guildVault]; if(!g)return say(ws,'Guild not found.','err');
+  if(!g.members.includes(p.username))return say(ws,'You are not a member of this guild.','err');
+  const amt=parseInt(amount);
+  if(cmd==='deposit'){
+    if(isNaN(amt)||amt<1)return say(ws,'DEPOSIT [amount] — deposit gold into the guild vault.','err');
+    if(p.gold<amt)return say(ws,`Not enough gold. You have ${p.gold}g.`,'err');
+    p.gold-=amt; g.bank+=amt; saveGuilds(); svc(p);
+    say(ws,`You slide ${amt} gold coins through the vault grate.`,'narrate');
+    say(ws,`✓ Deposited ${amt}g. Guild bank now holds ${g.bank}g.`,'ok');
+    // Notify online guild members
+    [...sessions.values()].filter(x=>x.loggedIn&&x.guildId===p.guildId&&x.ws!==ws)
+      .forEach(x=>say(x.ws,`[${g.name}] ${p.name} deposited ${amt}g into the vault.`,'narrate'));
+  } else if(cmd==='withdraw'){
+    if(g.leader!==p.username)return say(ws,'Only the guild leader may withdraw from the vault.','err');
+    if(isNaN(amt)||amt<1)return say(ws,'WITHDRAW [amount] — withdraw gold from the guild vault.','err');
+    if(g.bank<amt)return say(ws,`The vault only holds ${g.bank}g.`,'err');
+    g.bank-=amt; p.gold+=amt; saveGuilds(); svc(p);
+    say(ws,`You unlock the grate and retrieve ${amt} gold coins.`,'narrate');
+    say(ws,`✓ Withdrew ${amt}g. Guild bank now holds ${g.bank}g.`,'ok');
+    [...sessions.values()].filter(x=>x.loggedIn&&x.guildId===p.guildId&&x.ws!==ws)
+      .forEach(x=>say(x.ws,`[${g.name}] ${p.name} withdrew ${amt}g from the vault.`,'narrate'));
+  } else {
+    // VAULT with no command — show balance and instructions
+    say(ws,`── ${g.name} Bank Vault ────────────────`,'loot');
+    say(ws,`  Current balance: ${g.bank}g`,'sys');
+    say(ws,`  DEPOSIT [amount]  — add your gold to the guild bank`,'sys');
+    if(g.leader===p.username) say(ws,`  WITHDRAW [amount] — take gold from the guild bank (leader only)`,'sys');
+    else say(ws,`  Only ${g.leader} (leader) may withdraw.`,'sys');
+  }
+}
+
+function doGuildStorageCmd(ws,p,cmd,item){
+  const rm=world[p.room]; if(!rm||!rm.guildStorage)return say(ws,'Not in the guild storage.','err');
+  const g=guilds[rm.guildStorage]; if(!g)return say(ws,'Guild not found.','err');
+  if(!g.members.includes(p.username))return say(ws,'You are not a member of this guild.','err');
+  if(!g.storage)g.storage=[];
+  if(cmd==='store'||cmd==='donate'){
+    if(!item)return say(ws,'STORE [item] — donate an item to the guild storage.','err');
+    const idx=p.inventory.findIndex(i=>i.toLowerCase().includes(item.toLowerCase()));
+    if(idx===-1)return say(ws,`You don't have "${item}".`,'err');
+    const donated=p.inventory.splice(idx,1)[0];
+    g.storage.push(donated);
+    // Keep storage room items in sync
+    const storageId='storage_'+rm.guildStorage;
+    if(world[storageId])world[storageId].items=[...g.storage];
+    saveGuilds(); svc(p);
+    say(ws,`You place the ${donated} on the guild storage shelf.`,'narrate');
+    say(ws,`✓ ${donated} added to guild storage.`,'ok');
+    [...sessions.values()].filter(x=>x.loggedIn&&x.guildId===p.guildId&&x.ws!==ws)
+      .forEach(x=>say(x.ws,`[${g.name}] ${p.name} donated ${donated} to the storage.`,'narrate'));
+  } else if(cmd==='retrieve'||cmd==='take'){
+    if(!item)return say(ws,'RETRIEVE [item] — take an item from guild storage.','err');
+    const idx=g.storage.findIndex(i=>i.toLowerCase().includes(item.toLowerCase()));
+    if(idx===-1)return say(ws,`"${item}" not found in guild storage.`,'err');
+    const taken=g.storage.splice(idx,1)[0];
+    p.inventory.push(taken);
+    const storageId='storage_'+rm.guildStorage;
+    if(world[storageId])world[storageId].items=[...g.storage];
+    saveGuilds(); svc(p);
+    say(ws,`You take the ${taken} from the shelf.`,'narrate');
+    say(ws,`✓ ${taken} added to your inventory.`,'ok');
+    [...sessions.values()].filter(x=>x.loggedIn&&x.guildId===p.guildId&&x.ws!==ws)
+      .forEach(x=>say(x.ws,`[${g.name}] ${p.name} took ${taken} from storage.`,'narrate'));
+  } else {
+    // Show storage contents
+    say(ws,`── ${g.name} Storage Closet ──────────────`,'loot');
+    if(!g.storage.length) say(ws,'  Storage is empty. STORE [item] to donate.','sys');
+    else {
+      say(ws,`  ${g.storage.length} item${g.storage.length>1?'s':''} available:`,'sys');
+      g.storage.forEach((item,i)=>say(ws,`  ${i+1}. ${item}`,'narrate'));
+      say(ws,'  RETRIEVE [item] to take  |  STORE [item] to donate','sys');
+    }
+  }
+}
+
+function doGuildBed(ws,p){
+  const rm=world[p.room]; if(!rm||!rm.guildBed)return say(ws,'No recovery bed here.','err');
+  const g=guilds[rm.guildBed]; if(!g)return say(ws,'Guild not found.','err');
+  if(!g.members.includes(p.username))return say(ws,'You are not a member of this guild.','err');
+  if(p.hp>=p.maxhp)return say(ws,'You are already at full health.','sys');
+  say(ws,'You lie down on the recovery bed. The healing runes begin to glow...','narrate');
+  say(ws,'Restoring in 10 seconds — stay in the room.','sys');
+  const startRoom=p.room;
+  setTimeout(()=>{
+    // Only heal if still in the recovery room
+    if(p.room!==startRoom||!p.loggedIn){
+      say(ws,'Recovery interrupted — you left the room.','err'); return;
+    }
+    p.hp=p.maxhp; svc(p);
+    say(ws,'The runes pulse with golden light. You are fully restored!','ok');
+    say(ws,`HP fully restored: ${p.hp}/${p.maxhp}`,'ok');
+    sidebar(ws,p);
+  },10000);
+}
+
+function buildGuildRooms(gid){
+  const g=guilds[gid]; if(!g)return;
+  const hallId   = 'hall_'+gid;
+  const vaultId  = 'vault_'+gid;
+  const storageId= 'storage_'+gid;
+  const bedId    = 'bed_'+gid;
+  // Initialise storage if not present
+  if(!g.storage)g.storage=[];
+  // Main Hall
+  world[hallId]={zone:'GUILD HALLS',name:`${g.name} — Main Hall`,
+    desc:`The main hall of ${g.name}. Trophies and banners line the walls.${g.motd?' A sign reads: "'+g.motd+'"':''} Doors lead to the Vault (east), Storage (west), and Recovery Room (north).`,
+    exits:{out:'guild_hall_row',east:vaultId,west:storageId,north:bedId},
+    items:[],monsters:[],shop:null,guildHall:gid};
+  // Bank Vault
+  world[vaultId]={zone:'GUILD HALLS',name:`${g.name} — Bank Vault`,
+    desc:`The guild vault. Gold bars are stacked behind an iron grate. Only the guild leader may withdraw. All members may deposit.`,
+    exits:{west:hallId},items:[],monsters:[],shop:null,guildVault:gid};
+  // Storage Closet
+  world[storageId]={zone:'GUILD HALLS',name:`${g.name} — Storage Closet`,
+    desc:`Shelves of equipment left by guild members for others to use. Anyone in the guild may leave or take items.`,
+    exits:{east:hallId},items:[...(g.storage||[])],monsters:[],shop:null,guildStorage:gid};
+  // Recovery Room
+  world[bedId]={zone:'GUILD HALLS',name:`${g.name} — Recovery Room`,
+    desc:`A clean room with a row of recovery beds. The healing runes on the walls glow softly. Type BED to use a recovery bed — restores full HP in 10 seconds.`,
+    exits:{south:hallId},items:[],monsters:[],shop:null,guildBed:gid};
+}
+
 function doGuildHall(ws,p){
   if(!p.guildId||!guilds[p.guildId])return say(ws,'Not in a guild. Visit the Guild District (north of Temple).','err');
   const g=guilds[p.guildId];
+  buildGuildRooms(p.guildId);
   const hallId='hall_'+p.guildId;
-  world[hallId]={zone:'GUILD HALLS',name:`${g.name} Hall`,
-    desc:`The guild hall of ${g.name}.${g.motd?' The sign reads: "'+g.motd+'"':''} Trophies and banners decorate the walls.`,
-    exits:{out:'guild_hall_row'},items:[],monsters:[],shop:null};
   p.room=hallId;describeRoom(ws,p);
   say(ws,'','sys');
   say(ws,`─── ${g.name} ─ Guild Info ─────────────`,'loot');
@@ -2002,7 +2129,8 @@ function doGuildHall(ws,p){
     const m=[...sessions.values()].find(x=>x.username===u&&x.loggedIn);
     say(ws,m?`  ✓ ${m.name} the ${m.raceName} ${m.className} Lv${m.level}`:`  ○ ${u} (offline)`,'sys');
   });
-  say(ws,'  GC [msg] for guild chat  |  OUT to leave','sys');
+  say(ws,'  Rooms: EAST=Vault  WEST=Storage  NORTH=Recovery Bed  OUT=Exit','sys');
+  say(ws,'  GC [msg] for guild chat','sys');
   sidebar(ws,p);
 }
 
@@ -2365,9 +2493,13 @@ function handleCmd(ws,p,raw){
         p.inCombat=true;p.enemy=hostiles[0];
         say(ws,`The ${hostiles[0].name} snarls and lunges at you!`,'combat');
         say(ws,'ATTACK / FLEE / SKILL [name]  — or try to LOOK at it first.','sys');
-        // Send portrait
-        const _ap=MOB_PORTRAITS[hostiles[0].name];
-        if(_ap)raw(ws,{type:'mob_portrait',name:hostiles[0].name,img:'/monsters/'+_ap,hp:hostiles[0].hp,maxhp:hostiles[0].maxhp,atk:hostiles[0].atk,def:hostiles[0].def});
+        // Send portrait safely
+        try{
+          const _ap=MOB_PORTRAITS[hostiles[0].name];
+          if(_ap)raw(ws,{type:'mob_portrait',name:hostiles[0].name,img:'/monsters/'+_ap,
+            hp:hostiles[0].hp||0,maxhp:hostiles[0].maxhp||hostiles[0].hp||1,
+            atk:hostiles[0].atk||0,def:hostiles[0].def||0});
+        }catch(e){console.error('[PORTRAIT]',e.message);}
       }else{
         // Monster is present but not attacking — player can look or choose to engage
         const _idleLines=[
@@ -2714,6 +2846,58 @@ function handleCmd(ws,p,raw){
     case'guild':case'g':{const pts=rest.split(' ');guildCmd(ws,p,pts[0].toLowerCase(),pts.slice(1).join(' '));break;}
     case'gc':guildCmd(ws,p,'chat',rest);break;
     case'guildhall':doGuildHall(ws,p);break;
+    case'bed':doGuildBed(ws,p);break;
+    case'vault':{
+      const rm=world[p.room];
+      if(rm&&rm.guildVault) doGuildVaultCmd(ws,p,'vault','');
+      else say(ws,'No vault here. Go to your guild hall vault room.','err');
+      break;
+    }
+    case'storage':{
+      const rm=world[p.room];
+      if(rm&&rm.guildStorage) doGuildStorageCmd(ws,p,'storage','');
+      else say(ws,'No storage here. Go to your guild hall storage room.','err');
+      break;
+    }
+    case'store':case'donate':{
+      const rm=world[p.room];
+      if(rm&&rm.guildStorage) doGuildStorageCmd(ws,p,'store',rest);
+      else say(ws,'No guild storage here. Go to your guild storage room.','err');
+      break;
+    }
+    case'retrieve':{
+      const rm=world[p.room];
+      if(rm&&rm.guildStorage) doGuildStorageCmd(ws,p,'retrieve',rest);
+      else say(ws,'No guild storage here.','err');
+      break;
+    }
+    case'deposit':{
+      const rm=world[p.room];
+      if(rm&&rm.guildVault) doGuildVaultCmd(ws,p,'deposit',rest);
+      else {
+        // Fall back to old deposit from anywhere
+        if(!p.guildId)return say(ws,'Not in a guild.','err');
+        const amt=parseInt(rest);if(isNaN(amt)||amt<1)return say(ws,'DEPOSIT [amount]','err');
+        if(p.gold<amt)return say(ws,`Not enough gold.`,'err');
+        p.gold-=amt;guilds[p.guildId].bank+=amt;saveGuilds();svc(p);
+        say(ws,`Deposited ${amt}g. Guild bank: ${guilds[p.guildId].bank}g.`,'ok');
+        say(ws,'Tip: Visit your Guild Vault room to deposit and check the balance.','sys');
+      }
+      break;
+    }
+    case'withdraw':{
+      const rm=world[p.room];
+      if(rm&&rm.guildVault) doGuildVaultCmd(ws,p,'withdraw',rest);
+      else {
+        if(!p.guildId)return say(ws,'Not in a guild.','err');
+        const g=guilds[p.guildId];
+        if(g.leader!==p.username)return say(ws,'Only the leader can withdraw. Use the Guild Vault room.','err');
+        const amt=parseInt(rest);if(isNaN(amt)||amt<1||g.bank<amt)return say(ws,`Can't withdraw ${amt}g. Bank has ${g.bank}g.`,'err');
+        g.bank-=amt;p.gold+=amt;saveGuilds();svc(p);
+        say(ws,`Withdrew ${amt}g.`,'ok');
+      }
+      break;
+    }
     case'party':case'pt':{const pts=rest.split(' ');partyCmd(ws,p,pts[0].toLowerCase(),pts.slice(1).join(' '));break;}
     case'pc':partyCmd(ws,p,'chat',rest);break;
     case'trade':tradeCmd(ws,p,rest);break;
@@ -3064,7 +3248,7 @@ const server=http.createServer((req,res)=>{
   // Health check for Render
   if(req.url==='/health'){res.writeHead(200);res.end('OK');return;}
   // Serve monster/npc images
-  if(req.url.startsWith('/monsters/')||req.url.startsWith('/npcs/')||req.url.startsWith('/items/')){
+  if(req.url.startsWith('/monsters/')||req.url.startsWith('/npcs/')||req.url.startsWith('/items/')||req.url.match(/\.jpg$/i)){
     const imgPath=path.join(__dirname,'public',req.url.split('?')[0]);
     fs.readFile(imgPath,(err,data)=>{
       if(err){res.writeHead(404);res.end('Not found');}
