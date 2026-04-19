@@ -413,7 +413,7 @@ setInterval(respawnWorld, 5*60*1000);
 
 // ── Guilds ────────────────────────────────────────────────────────────────
 let guilds = {};
-function loadGuilds() { try { guilds = JSON.parse(fs.readFileSync(GUILD_FILE,'utf8')); } catch { guilds = {}; } }
+function loadGuilds() { try { if(!fs.existsSync(DATA_DIR))fs.mkdirSync(DATA_DIR,{recursive:true}); guilds = JSON.parse(fs.readFileSync(GUILD_FILE,'utf8')); } catch { guilds = {}; } }
 function saveGuilds() { fs.writeFileSync(GUILD_FILE, JSON.stringify(guilds,null,2)); }
 loadGuilds();
 console.log('[Boot] Guilds loaded —', Object.keys(guilds).length, 'guilds');
@@ -448,8 +448,12 @@ function sayRoom(rid, text, cls='', excl=null) { bRoom(rid, {type:'line',text,cl
 // ── Character files ───────────────────────────────────────────────────────
 const cf  = u => path.join(CHAR_DIR, u.toLowerCase()+'.json');
 const cex = u => fs.existsSync(cf(u));
-const ldc = u => { try { return JSON.parse(fs.readFileSync(cf(u),'utf8')); } catch { return null; } };
+const ldc = u => { try { if(!fs.existsSync(cf(u)))return null; return JSON.parse(fs.readFileSync(cf(u),'utf8')); } catch { return null; } };
 function svc(p) {
+  try{
+  // Ensure directory exists before writing
+  if(!fs.existsSync(CHAR_DIR))fs.mkdirSync(CHAR_DIR,{recursive:true});
+  if(!fs.existsSync(DATA_DIR))fs.mkdirSync(DATA_DIR,{recursive:true});
   fs.writeFileSync(cf(p.username), JSON.stringify({
     username:p.username, passwordHash:p.passwordHash, name:p.name,
     raceId:p.raceId, raceName:p.raceName, classId:p.classId, className:p.className,
@@ -461,6 +465,7 @@ function svc(p) {
     zonesVisited:p.zonesVisited||[], guildId:p.guildId||'',
     quests:p.quests||{}, isAdmin:p.isAdmin||false
   }, null, 2));
+  }catch(e){console.error('[SAVE ERROR]',e.message);}
 }
 
 const RTDEF = {
@@ -503,6 +508,9 @@ function hydrate(data) { return Object.assign({...RTDEF, companion:null, zombies
 const ADMIN_USER = 'bound';
 const ADMIN_HASH = hash('78945');
 function ensureAdmin() {
+  try{
+  if(!fs.existsSync(DATA_DIR))fs.mkdirSync(DATA_DIR,{recursive:true});
+  if(!fs.existsSync(CHAR_DIR))fs.mkdirSync(CHAR_DIR,{recursive:true});
   if (cex(ADMIN_USER)) return;
   fs.writeFileSync(cf(ADMIN_USER), JSON.stringify({
     username:ADMIN_USER, passwordHash:ADMIN_HASH, name:'Bound',
@@ -514,6 +522,7 @@ function ensureAdmin() {
     guildId:'', quests:{}, isAdmin:true
   }, null, 2));
   console.log('[Boot] Admin account "Bound" created');
+  }catch(e){console.error('[ADMIN SETUP ERROR]',e.message);}
 }
 ensureAdmin();
 console.log('[Boot] Admin ready');
@@ -1858,7 +1867,7 @@ wss.on('connection',ws=>{
   ws.on('error',e=>console.error('[WS]',e.message));
 });
 
-server.listen(PORT,()=>{
+server.listen(PORT,'0.0.0.0',()=>{
   console.log('');
   console.log('  ╔══════════════════════════════════════════════════╗');
   console.log('  ║   SHADOWMERE MUD v10 — RUNNING                   ║');
@@ -1868,3 +1877,4 @@ server.listen(PORT,()=>{
   console.log('  ╚══════════════════════════════════════════════════╝');
   console.log('');
 });
+
