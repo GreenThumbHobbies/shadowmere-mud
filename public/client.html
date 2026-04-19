@@ -162,6 +162,35 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
   <button id="picker-confirm" disabled onclick="confirmPick()">CONFIRM SELECTION</button>
 </div>
 
+<!-- NPC PROFILE MODAL -->
+<div id="npc-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center">
+  <div id="npc-card" style="background:var(--bg1);border:1px solid var(--border2);border-radius:6px;width:480px;max-width:95vw;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 0 60px rgba(58,158,222,.2)">
+    <div id="npc-card-header" style="display:flex;align-items:stretch;border-bottom:1px solid var(--border);background:var(--bg0);min-height:160px">
+      <div id="npc-portrait-wrap" style="width:110px;flex-shrink:0;background:var(--bg2);display:flex;align-items:center;justify-content:center;overflow:hidden">
+        <canvas id="npc-portrait-canvas" width="110" height="160" style="display:block"></canvas>
+      </div>
+      <div style="flex:1;padding:16px;display:flex;flex-direction:column;justify-content:center">
+        <div id="npc-name" style="font-family:var(--serif);font-size:18px;color:var(--accent);letter-spacing:2px">—</div>
+        <div id="npc-title" style="font-size:11px;color:var(--teal);margin-top:4px">—</div>
+        <div id="npc-room" style="font-size:10px;color:var(--text3);margin-top:3px">—</div>
+        <div id="npc-quest-badge" style="display:none;margin-top:8px;font-size:10px;color:var(--gold);border:1px solid var(--gold);padding:2px 8px;border-radius:2px;width:fit-content">✦ Has Quests</div>
+      </div>
+    </div>
+    <div style="padding:16px;flex:1;overflow-y:auto">
+      <div style="font-size:9px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;margin-bottom:8px">About</div>
+      <div id="npc-desc" style="font-size:12px;color:var(--text);line-height:1.8">—</div>
+      <div style="margin-top:14px;font-size:10px;color:var(--text3);font-style:italic" id="npc-greeting-wrap">
+        <span style="color:var(--text2)">"</span><span id="npc-greeting"></span><span style="color:var(--text2)">"</span>
+      </div>
+    </div>
+    <div style="padding:10px 16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;background:var(--bg0)">
+      <button class="pfoot-btn" onclick="cmd('talk '+currentNPCName.toLowerCase().split(' ')[0])">TALK</button>
+      <button class="pfoot-btn" onclick="cmd('ask ')">ASK</button>
+      <button class="pfoot-btn" onclick="closeNPCProfile()">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- PROFILE MODAL -->
 <div id="profile-overlay">
   <div id="profile-card">
@@ -247,6 +276,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
         <button class="qb prof" onclick="cmd('profile')">PROFILE</button>
         <button class="qb prof" onclick="cmd('achievements')">ACHIEVE</button>
         <button class="qb" onclick="cmd('inventory')">INV</button>
+        <button class="qb sh" onclick="cmd('bag')">BAG</button>
         <button class="qb" onclick="cmd('stats')">STATS</button>
         <button class="qb" onclick="cmd('who')">WHO</button>
         <button class="qb" style="color:#d0a060;border-color:#d0a060" onclick="cmd('board')">BOARD</button>
@@ -373,6 +403,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 <script>
 const WS_URL=`${location.protocol==='https:'?'wss':'ws'}://${location.host}`;
 let ws, hist=[], hIdx=-1;
+let currentNPCName='';
 let myAvatar='', profileIsOpen=false, profileIsSelf=false, bioEditing=false;
 let pickerMode='', pickerSelected='';
 
@@ -398,6 +429,7 @@ function handle(msg){
     case'regen':       updateRegen(msg.secs,msg.max); break;
     case'profile':     openProfile(msg); break;
     case'avatar_saved':onAvatarSaved(msg.avatar); break;
+    case'npc_profile':  openNPCProfile(msg); break;
     case'pick_race':   openPicker('race', msg.races); break;
     case'pick_class':  openPicker('class', msg.classes); break;
   }
@@ -586,6 +618,54 @@ function getFileInput(){
   return fresh;
 }
 
+// ── NPC PORTRAITS ─────────────────────────────────────────────────────────
+const NPC_PORTRAITS = {
+  tormund:  {bg:'#1a0f08',fg:'#8b5e3c',hair:'#3a2010',skin:'#c4956a',feature:'beard', accent:'#4a3020'},
+  grimwald: {bg:'#0a0a0f',fg:'#5a5a7a',hair:'#1a1a2a',skin:'#8a7a6a',feature:'anvil', accent:'#3a3050'},
+  mira:     {bg:'#0f0a18',fg:'#7a5a9a',hair:'#c8c8c8',skin:'#d4b896',feature:'vial',  accent:'#4a2060'},
+  aldric:   {bg:'#0f0f1a',fg:'#9a9a6a',hair:'#d4d4aa',skin:'#c4a882',feature:'cross', accent:'#4a4a20'},
+  broker:   {bg:'#050508',fg:'#2a2a3a',hair:'#000000',skin:'#3a3a4a',feature:'hood',  accent:'#1a1a28'},
+  pip:      {bg:'#081208',fg:'#4a8a4a',hair:'#8a5a20',skin:'#d4a070',feature:'paw',   accent:'#205020'},
+  keeper:   {bg:'#080818',fg:'#3a3a8a',hair:'#6a6aaa',skin:'#8a8ab0',feature:'rune',  accent:'#202060'},
+  marta:    {bg:'#120a04',fg:'#8a6a3a',hair:'#4a2a10',skin:'#c49070',feature:'coin',  accent:'#402010'},
+  barret:   {bg:'#0a0804',fg:'#6a5030',hair:'#303020',skin:'#b08060',feature:'mug',   accent:'#302818'},
+  finn:     {bg:'#080f12',fg:'#5a8a7a',hair:'#c8a860',skin:'#d4b890',feature:'leaf',  accent:'#205040'}
+};
+function drawNPCPortrait(canvas,key){
+  const p=NPC_PORTRAITS[key]||NPC_PORTRAITS.keeper;
+  const ctx=canvas.getContext('2d');const w=canvas.width,h=canvas.height;
+  ctx.clearRect(0,0,w,h);
+  const bg=ctx.createLinearGradient(0,0,0,h);bg.addColorStop(0,p.accent);bg.addColorStop(1,p.bg);
+  ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
+  ctx.fillStyle='rgba(0,0,0,0.15)';for(let y=0;y<h;y+=3)ctx.fillRect(0,y,w,1);
+  ctx.fillStyle=p.fg;ctx.beginPath();ctx.ellipse(w/2,h*0.82,w*0.38,h*0.28,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle=p.skin;ctx.beginPath();ctx.ellipse(w/2,h*0.38,w*0.22,h*0.24,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle=p.hair;ctx.beginPath();ctx.ellipse(w/2,h*0.28,w*0.22,h*0.14,0,0,Math.PI);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.9)';
+  ctx.beginPath();ctx.ellipse(w*0.42,h*0.37,3,4,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(w*0.58,h*0.37,3,4,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle=p.accent||'#333';
+  ctx.beginPath();ctx.ellipse(w*0.42,h*0.38,2,2.5,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(w*0.58,h*0.38,2,2.5,0,0,Math.PI*2);ctx.fill();
+  ctx.font=Math.floor(w*0.32)+'px serif';ctx.textAlign='center';ctx.fillStyle='rgba(255,255,255,0.6)';
+  const sym={beard:'⚒',anvil:'⚒',vial:'⚗',cross:'✝',hood:'◈',paw:'❧',rune:'᛭',coin:'◎',mug:'◉',leaf:'❧'};
+  ctx.fillText(sym[p.feature]||'◈',w/2,h*0.72);
+  ctx.strokeStyle=p.fg+'88';ctx.lineWidth=2;ctx.strokeRect(1,1,w-2,h-2);
+}
+function openNPCProfile(d){
+  currentNPCName=d.name||'';
+  document.getElementById('npc-name').textContent=d.name||'Unknown';
+  document.getElementById('npc-title').textContent=d.title||'';
+  document.getElementById('npc-room').textContent='Location: '+(d.room||'');
+  document.getElementById('npc-desc').textContent=d.desc||'A mysterious figure.';
+  document.getElementById('npc-greeting').textContent=d.greeting||'';
+  document.getElementById('npc-quest-badge').style.display=d.hasQuests?'block':'none';
+  drawNPCPortrait(document.getElementById('npc-portrait-canvas'),d.portrait||'keeper');
+  document.getElementById('npc-overlay').style.display='flex';
+}
+function closeNPCProfile(){document.getElementById('npc-overlay').style.display='none';}
+document.getElementById('npc-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('npc-overlay'))closeNPCProfile();});
+
 function triggerUpload(){
   const fi=getFileInput();
   fi.value=''; // clear so same file can be selected again
@@ -636,6 +716,8 @@ function clearAvatar(){setLocalAvatar('');send({type:'clear_avatar'});}
 
 function onAvatarSaved(avatar){
   myAvatar=avatar||'';
+  // Update sidebar portrait
+  setLocalAvatar(avatar);
   // If profile modal open and it's self, update the portrait there too
   if(profileIsOpen&&profileIsSelf){
     const img=document.getElementById('profile-card-avatar');
