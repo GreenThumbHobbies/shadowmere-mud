@@ -9,7 +9,8 @@ const WS   = require('ws');
 
 // ── Config ────────────────────────────────────────────────────────────────
 const PORT      = process.env.PORT || 3000;
-const DATA_DIR  = path.join(__dirname, 'data');
+// Use /app/data on Render (mounted disk), otherwise local ./data
+const DATA_DIR  = process.env.RENDER ? '/app/data' : path.join(__dirname, 'data');
 const CHAR_DIR  = path.join(DATA_DIR, 'characters');
 const GUILD_FILE= path.join(DATA_DIR, 'guilds.json');
 [DATA_DIR, CHAR_DIR].forEach(d => { if (!fs.existsSync(d)) fs.mkdirSync(d, {recursive:true}); });
