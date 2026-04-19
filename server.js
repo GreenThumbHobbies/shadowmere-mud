@@ -273,6 +273,7 @@ const EQ = {
   "leviathan's scale": {t:'armor', atk:2,def:9, desc:"Astral dragon scale. Near impenetrable."},
   "void god's essence":{t:'trinket',atk:8,def:6, desc:"The essence of the Void God. Terrible, beautiful power."},
   // ── Craftable items already registered above ─────────────────────────────
+  "bandit king's blade":{t:'weapon',atk:16,def:2,desc:'Heavy cleaver of the Bandit King. Notched from countless fights.'},
   'silver ring':{t:'armor',atk:0,def:1},"ranger's bow":{t:'weapon',atk:6,def:0},
   'forest cloak':{t:'armor',atk:0,def:3},'enchanted gem':{t:'trinket',atk:2,def:2},
   'rusty sword':{t:'weapon',atk:2,def:0},'iron sword':{t:'weapon',atk:4,def:0},
@@ -308,6 +309,17 @@ const SHOPS = {
     {name:'Envenomed Dagger',cost:200,t:'weapon',atk:12,def:0},{name:'Void Cloak',cost:180,t:'armor',atk:2,def:5},
     {name:'Elixir of Power',cost:300,t:'tonic',atk:8},{name:'Elixir of Stone',cost:300,t:'tonic',def:8},
     {name:'Phoenix Draught',cost:150,t:'potion',heal:9999}
+  ]},
+  ashford_store:{name:"Martas General Store",greet:"Marta eyes you. 'Coin upfront. No trouble.'",items:[
+    {name:'Healing Potion',cost:10,t:'potion',heal:20},{name:'Antidote',cost:6,t:'potion',heal:0},
+    {name:'Worn Satchel',cost:15,t:'bag',slots:6},{name:'torch',cost:2,t:'item'},
+    {name:'Iron Sword',cost:25,t:'weapon',atk:4,def:0},{name:'Leather Armor',cost:20,t:'armor',atk:0,def:2},
+    {name:'swamp herb',cost:5,t:'item'},{name:'crude map',cost:3,t:'item'}
+  ]},
+  ashford_healer:{name:"Brother Finn Healing Post",greet:"Finn smiles gently. 'The light mend you, traveller.'",items:[
+    {name:'Healing Potion',cost:10,t:'potion',heal:20},{name:'Greater Heal',cost:25,t:'potion',heal:50},
+    {name:'Full Restore',cost:70,t:'potion',heal:9999},{name:'swamp herb',cost:4,t:'item'},
+    {name:'Antidote',cost:6,t:'potion',heal:0},{name:'beast treat',cost:12,t:'item'}
   ]},
   pet_store:{name:"Pip's Exotic Menagerie",greet:"Pip beams. 'Every pet is friendly. Mostly!'",items:[
     {name:'Black Cat',cost:30,t:'pet',atk:3,hp:20},{name:'War Hound',cost:80,t:'pet',atk:8,hp:40},
@@ -357,11 +369,19 @@ const WT = {
   // Forest
   ashwood_edge:    {zone:'ASHWOOD FOREST',name:'Ashwood Edge',desc:'Pale ash-barked trees. Grey light. Wolves howl in the fog.',exits:{north:'south_gate',south:'ashwood_deep',east:'forest_camp'},base:['swamp herb'],mon:[M('timber_wolf','Timber Wolf',12,4,1,25,4,'cave moss')],shop:null},
   forest_camp:     {zone:'ASHWOOD FOREST',name:"Ranger's Camp",desc:'A cold campsite of a ranger who never returned.',exits:{west:'ashwood_edge'},base:["ranger's bow",'forest cloak'],mon:[],shop:null},
-  ashwood_deep:    {zone:'ASHWOOD FOREST',name:'Deep Ashwood',desc:'Trees press close. Something large moves between the trunks.',exits:{north:'ashwood_edge',south:'swamp_border',west:'forest_ruins'},base:[],mon:[M('forest_troll','Forest Troll',28,7,2,60,12,'troll hide'),M('timber_wolf2','Timber Wolf',12,4,1,25,4,'cave moss')],shop:null},
+  ashwood_deep:    {zone:'ASHWOOD FOREST',name:'Deep Ashwood',desc:'Trees press close. Something large moves between the trunks. A worn path leads east to Ashford Village.',exits:{north:'ashwood_edge',south:'swamp_border',west:'forest_ruins',east:'ashford_gate'},base:[],mon:[M('forest_troll','Forest Troll',28,7,2,60,12,'troll hide'),M('timber_wolf2','Timber Wolf',12,4,1,25,4,'cave moss')],shop:null},
   forest_ruins:    {zone:'ASHWOOD FOREST',name:'Forest Ruins',desc:'Ancient moss-draped walls. An altar glints with forgotten treasure.',exits:{east:'ashwood_deep'},base:['enchanted gem','ancient rune'],mon:[M('stone_golem','Stone Golem',35,8,4,90,20,'obsidian shard')],shop:null},
   swamp_border:    {zone:'ASHWOOD FOREST',name:'Swamp Border',desc:'The floor gives way to brackish water. Serpents sun on logs.',exits:{north:'ashwood_deep',south:'swamp_heart'},base:['swamp herb'],mon:[M('swamp_serpent','Swamp Serpent',20,6,1,40,8,'serpent fang')],shop:null},
-  swamp_heart:     {zone:'ASHWOOD FOREST',name:'Heart of the Swamp',desc:'A small island of dry ground in the bog. A ruined watchtower sinks into the mire.',exits:{north:'swamp_border'},base:['obsidian shard'],mon:[M('bog_witch','Bog Witch',32,9,2,85,22,'void crystal')],shop:null},
+  swamp_heart:     {zone:'ASHWOOD FOREST',name:'Heart of the Swamp',desc:'A small island of dry ground in the bog. A ruined watchtower sinks into the mire. Rare deepwood roots grow here.',exits:{north:'swamp_border'},base:['obsidian shard','deepwood root'],mon:[M('bog_witch','Bog Witch',32,9,2,85,22,'void crystal')],shop:null},
   // Dungeon Upper
+  // ── ASHFORD VILLAGE (second town, reachable through the forest) ────────────
+  ashford_gate:    {zone:'ASHFORD VILLAGE',name:'Ashford Gate',desc:'A rickety wooden gate marks the edge of Ashford Village. Survivors of the old war settled here, tough and self-reliant. A weathered signpost points to a general store and inn.',exits:{north:'ashford_square',south:'ashwood_deep'},base:[],mon:[],shop:null},
+  ashford_square:  {zone:'ASHFORD VILLAGE',name:'Ashford Square',desc:'A muddy square with a well at its centre. Villagers eye you with suspicion. A general store to the east, the Rusted Nail inn to the west, a healer to the north.',exits:{south:'ashford_gate',east:'ashford_store',west:'ashford_inn',north:'ashford_healer'},base:[],mon:[],shop:null},
+  ashford_store:   {zone:'ASHFORD VILLAGE',name:'Martas General Store',desc:'Cluttered shelves of practical goods. Marta watches you with sharp eyes.',exits:{west:'ashford_square'},base:[],mon:[],shop:'ashford_store'},
+  ashford_inn:     {zone:'ASHFORD VILLAGE',name:'The Rusted Nail Inn',desc:'A low-ceilinged inn smelling of woodsmoke. Old Barret the innkeeper nods from behind the bar. Rooms available for weary travellers.',exits:{east:'ashford_square'},base:[],mon:[],shop:null,inn:true},
+  ashford_healer:  {zone:'ASHFORD VILLAGE',name:'Ashford Healing Post',desc:'A clean whitewashed room. Brother Finn, a gentle monk, tends a patient. Healing herbs hang drying from the rafters.',exits:{south:'ashford_square'},base:['swamp herb'],mon:[],shop:'ashford_healer'},
+  ashford_outskirts:{zone:'ASHFORD VILLAGE',name:'Ashford Outskirts',desc:'Ruined buildings mark where the village once extended. Bandits have moved in. The road east leads deeper into dangerous territory.',exits:{west:'ashford_square',east:'bandit_camp'},base:[],mon:[{id:'ashford_bandit',name:'Bandit Scout',hp:22,maxhp:22,atk:6,def:2,xp:45,gold:15,loot:'crude map',dead:false}],shop:null},
+  bandit_camp:     {zone:'ASHFORD VILLAGE',name:'Bandit Camp',desc:'A fortified camp of outlaws. The Bandit King rules from his throne of stolen goods.',exits:{west:'ashford_outskirts'},base:['obsidian shard','gold coin'],mon:[{id:'bandit_thug','name':'Bandit Thug',hp:30,maxhp:30,atk:8,def:3,xp:65,gold:20,loot:'iron key',dead:false},{id:'bandit_king',name:'Bandit King',hp:70,maxhp:70,atk:14,def:5,xp:300,gold:80,loot:"Bandit King's Blade",dead:false}],shop:null},
   dungeon_entrance:{zone:'THE DUNGEON — UPPER',name:'Dungeon Entrance',desc:'Iron-banded doors hang open above a descending staircase.',exits:{up:'south_gate',down:'dungeon_hall'},base:[],mon:[],shop:null},
   dungeon_hall:    {zone:'THE DUNGEON — UPPER',name:'Dungeon Hall',desc:"A vaulted corridor. Torches sputter. Aldwyn's satchel lies near the wall.",exits:{up:'dungeon_entrance',east:'crypts',west:'prison',north:'dungeon_armory',south:'dungeon_well'},base:["Aldwyn's satchel"],mon:[M('skel_warrior','Skeleton Warrior',18,5,1,35,6,'bone shard')],shop:null},
   dungeon_armory:  {zone:'THE DUNGEON — UPPER',name:'Dungeon Armory',desc:'Racks of rotted wood. One intact chest, lock smashed.',exits:{south:'dungeon_hall',north:'mid_dungeon'},base:['iron key','bone shard'],mon:[M('armor_skel','Armored Skeleton',22,6,3,50,10,'bone shard')],shop:null},
@@ -456,6 +476,226 @@ function saveGuilds() { fs.writeFileSync(GUILD_FILE, JSON.stringify(guilds,null,
 loadGuilds();
 console.log('[Boot] Guilds loaded —', Object.keys(guilds).length, 'guilds');
 
+
+// ── Housing / Room Rental ─────────────────────────────────────────────────
+const HOUSING_FILE = path.join(DATA_DIR, 'housing.json');
+let rentedRooms = {}; // username -> {roomId, expires, items:[]}
+function loadHousing(){try{rentedRooms=JSON.parse(fs.readFileSync(HOUSING_FILE,'utf8'));}catch{rentedRooms={};}}
+function saveHousing(){try{fs.writeFileSync(HOUSING_FILE,JSON.stringify(rentedRooms,null,2));}catch(e){console.error('[HOUSING]',e.message);}}
+loadHousing();
+
+const RENTAL_COST = 50; // gold per rent
+const RENTAL_DAYS = 7;  // days per rental
+
+function housingCmd(ws,p,sub,rest){
+  const inns=['tavern','ashford_inn'];
+  switch(sub){
+    case'rent':{
+      if(!inns.includes(p.room))return say(ws,'You must be at a tavern inn to rent a room. (The Broken Flagon in Shadowmere or The Rusted Nail in Ashford)','err');
+      if(rentedRooms[p.username])return say(ws,'You already rent a room. Type ROOM to enter it.','ok');
+      if(p.gold<RENTAL_COST)return say(ws,`Need ${RENTAL_COST}g to rent a room for ${RENTAL_DAYS} days.`,'err');
+      p.gold-=RENTAL_COST;
+      const roomId='private_'+p.username.toLowerCase();
+      const expires=Date.now()+(RENTAL_DAYS*24*60*60*1000);
+      rentedRooms[p.username]={roomId,expires,items:[],desc:'A small but private room. A bed, a table, a window.'};
+      world[roomId]={zone:'PRIVATE QUARTERS',name:`${p.name}'s Room`,
+        desc:'A small private room. Your own space in Shadowmere. STORE [item] to leave items here. RETRIEVE [item] to take them.',
+        exits:{out:p.room},base:[],mon:[],shop:null,private:p.username};
+      saveHousing();svc(p);sidebar(ws,p);
+      say(ws,`Room rented for ${RENTAL_DAYS} days. ${RENTAL_COST}g paid. Type ROOM to enter.`,'ok');
+      break;
+    }
+    case'enter':case'':case undefined:{
+      const rental=rentedRooms[p.username];
+      if(!rental)return say(ws,'No room rented. Visit a tavern: HOUSING RENT costs 50g for 7 days.','err');
+      if(Date.now()>rental.expires){
+        delete rentedRooms[p.username];
+        if(world[rental.roomId])delete world[rental.roomId];
+        saveHousing();
+        return say(ws,'Your room rental has expired. Visit a tavern to renew (HOUSING RENT).','err');
+      }
+      // Ensure room exists in world
+      if(!world[rental.roomId]){
+        world[rental.roomId]={zone:'PRIVATE QUARTERS',name:`${p.name}'s Room`,
+          desc:'A small private room.',exits:{out:inns.includes(p.room)?p.room:'tavern'},base:[],mon:[],shop:null,private:p.username};
+      }
+      world[rental.roomId].exits.out=p.room;
+      p.room=rental.roomId;describeRoom(ws,p);
+      const days=Math.ceil((rental.expires-Date.now())/(24*60*60*1000));
+      say(ws,`  Rental expires in ${days} day(s). HOUSING RENEW to extend.`,'sys');
+      if(rental.items&&rental.items.length)say(ws,`  Stored items: ${rental.items.join(', ')}`,'loot');
+      sidebar(ws,p);break;
+    }
+    case'renew':{
+      const rental=rentedRooms[p.username];
+      if(!rental)return say(ws,'No room rented. Type HOUSING RENT at a tavern.','err');
+      if(p.gold<RENTAL_COST)return say(ws,`Need ${RENTAL_COST}g to renew.`,'err');
+      p.gold-=RENTAL_COST;
+      rental.expires=Math.max(rental.expires,Date.now())+(RENTAL_DAYS*24*60*60*1000);
+      saveHousing();svc(p);sidebar(ws,p);
+      say(ws,`Room renewed for another ${RENTAL_DAYS} days.`,'ok');break;
+    }
+    case'store':{
+      const rental=rentedRooms[p.username];
+      if(!rental||p.room!==rental.roomId)return say(ws,'You must be in your room to store items. HOUSING ENTER first.','err');
+      if(!rest)return say(ws,'HOUSING STORE [item]','err');
+      const idx=p.inventory.findIndex(i=>i.toLowerCase().includes(rest.toLowerCase()));
+      if(idx===-1)return say(ws,"You don't have that.",'err');
+      const item=p.inventory.splice(idx,1)[0];
+      if(!rental.items)rental.items=[];rental.items.push(item);
+      saveHousing();svc(p);sidebar(ws,p);
+      say(ws,`${item} stored in your room.`,'ok');break;
+    }
+    case'retrieve':{
+      const rental=rentedRooms[p.username];
+      if(!rental||p.room!==rental.roomId)return say(ws,'You must be in your room to retrieve items.','err');
+      if(!rest)return say(ws,'HOUSING RETRIEVE [item]','err');
+      const idx=(rental.items||[]).findIndex(i=>i.toLowerCase().includes(rest.toLowerCase()));
+      if(idx===-1)return say(ws,"That item is not stored here.",'err');
+      const item=rental.items.splice(idx,1)[0];
+      p.inventory.push(item);saveHousing();svc(p);sidebar(ws,p);
+      say(ws,`${item} retrieved.`,'ok');break;
+    }
+    default:say(ws,'HOUSING: RENT  ENTER  RENEW  STORE [item]  RETRIEVE [item]','sys');
+  }
+}
+
+
+// ── Class Specialization (every 10 levels, choose 2 of 5 offered skills) ──
+const SPEC_POOL = {
+  // Tank specs
+  warrior:    ['divine_shield','fortress','consecrate','unholy_ground','bone_shield'],
+  paladin:    ['meteor','chain_lightning','holy_nova','purge','inspire'],
+  templar:    ['rage','blood_lust','death_strike','reckless_strike','war_cry'],
+  deathknight:['plague','soul_drain','lich_form','doom','dark_pact'],
+  // Damage specs
+  rogue:      ['death_mark','shadow_strike','confuse','wild_magic','jinx'],
+  berserker:  ['meteor','chain_lightning','fireball','spell_surge','overload'],
+  shadowblade:['poison_blade','death_mark','soul_siphon','banish','doom'],
+  warlock:    ['plague','curse_skill','hex','death_mark','unholy_ground'],
+  // Magic specs
+  mage:       ['chain_lightning','soul_rend','rift','overload','elemental_form'],
+  shaman:     ['fireball','meteor','consecrate','regrowth','totem'],
+  channeler:  ['holy_nova','dark_aura','inspire','catalyst','purge'],
+  spellblade: ['shadow_strike','death_mark','dark_aura','soul_rend','doom'],
+  // Support specs
+  druid:      ['lay_on_hands','divine_shield','consecrate','inspire','fortress'],
+  alchemist:  ['regrowth','totem','ancestral_shield','purge','nature_heal'],
+  monk:       ['blood_lust','rage','reckless_strike','war_cry','frenzy'],
+  // Summoner specs
+  beastmaster:['summon_wolves','entangle','barkskin','alpha_call','wild_instinct'],
+  zombie_mage:['doom','dark_pact','plague','unholy_ground','soul_rend'],
+  necromancer:['meteor','chain_lightning','fireball','hex','banish'],
+  // Misc
+  ranger:     ['shadowstep','blink','fade','death_mark','shadow_strike'],
+  trickster:  ['meteor','fireball','chain_lightning','doom','plague']
+};
+
+function offerSpecialization(ws,p){
+  if(!p.pendingSpec){p.pendingSpec=null;}
+  const pool=SPEC_POOL[p.classId]||[];
+  // Filter out skills already learned
+  const available=pool.filter(s=>!(p.extraSkills||[]).includes(s));
+  if(available.length<2){say(ws,'No new specializations available for your class at this time.','sys');return;}
+  // Pick 5 random from available (or all if less)
+  const offered=available.sort(()=>Math.random()-0.5).slice(0,Math.min(5,available.length));
+  p.pendingSpec={offered,chosen:[]};
+  say(ws,'','sys');
+  say(ws,'★ ═══ CLASS SPECIALIZATION ══════════════════════════════ ★','loot');
+  say(ws,`You have reached a milestone! Choose 2 new skills to learn:`,'ok');
+  offered.forEach((sid,i)=>{
+    const sk=SK[sid]||{n:sid};
+    say(ws,`  [${i+1}] ${sk.n.padEnd(20)} ${sk.cmb?'(combat)':'(any time)'}`,  'skill');
+  });
+  say(ws,'Type CHOOSE [1] then CHOOSE [2] to select your two skills.','sys');
+  say(ws,'★ ════════════════════════════════════════════════════════ ★','loot');
+}
+
+function doChooseSpec(ws,p,numStr){
+  if(!p.pendingSpec)return say(ws,'No specialization pending. You earn one every 10 levels.','err');
+  const n=parseInt(numStr)-1;
+  if(isNaN(n)||n<0||n>=p.pendingSpec.offered.length)return say(ws,`Choose a number between 1 and ${p.pendingSpec.offered.length}.`,'err');
+  const sid=p.pendingSpec.offered[n];
+  if(p.pendingSpec.chosen.includes(sid))return say(ws,'Already chosen that one.','err');
+  p.pendingSpec.chosen.push(sid);
+  const sk=SK[sid]||{n:sid};
+  say(ws,`✓ Learned: ${sk.n}!`,'loot');
+  if(p.pendingSpec.chosen.length>=2){
+    // Apply the skills
+    if(!p.extraSkills)p.extraSkills=[];
+    p.pendingSpec.chosen.forEach(s=>{if(!p.extraSkills.includes(s))p.extraSkills.push(s);});
+    p.pendingSpec=null;
+    say(ws,'★ Specialization complete! Your new skills are ready to use.','loot');
+    svc(p);sidebar(ws,p);
+  }else{
+    say(ws,'Good. Now choose your second skill.','sys');
+  }
+}
+
+
+// ── Leaderboards ──────────────────────────────────────────────────────────
+function showLeaderboard(ws,cat){
+  cat=(cat||'level').toLowerCase();
+  // Load all character files
+  const chars=[];
+  try{
+    fs.readdirSync(CHAR_DIR).filter(f=>f.endsWith('.json')).forEach(f=>{
+      try{const c=JSON.parse(fs.readFileSync(path.join(CHAR_DIR,f),'utf8'));chars.push(c);}catch{}
+    });
+  }catch{}
+  let sorted,title,val;
+  if(cat==='kills'||cat==='kill'){sorted=chars.sort((a,b)=>(b.killCount||0)-(a.killCount||0));title='Top Monster Slayers';val=c=>`${c.killCount||0} kills`;}
+  else if(cat==='gold'||cat==='rich'){sorted=chars.sort((a,b)=>(b.gold||0)-(a.gold||0));title='Richest Adventurers';val=c=>`${c.gold||0}g`;}
+  else if(cat==='achieve'||cat==='achievements'){sorted=chars.sort((a,b)=>(b.achievements||[]).length-(a.achievements||[]).length);title='Most Achievements';val=c=>`${(c.achievements||[]).length} achievements`;}
+  else{sorted=chars.sort((a,b)=>(b.level||1)-(a.level||1));title='Highest Level';val=c=>`Level ${c.level||1}`;}
+  say(ws,'═══ Shadowmere Leaderboard — '+title+' ═══════════════','loot');
+  sorted.slice(0,10).forEach((c,i)=>{
+    const online=[...sessions.values()].find(x=>x.username===c.username&&x.loggedIn);
+    say(ws,`  ${String(i+1).padStart(2)}. ${c.name.padEnd(16)} ${c.raceName||''} ${c.className} — ${val(c)}${online?' ●':''}`,i===0?'loot':'sys');
+  });
+  say(ws,'  LEADERS [level/kills/gold/achievements] to filter','sys');
+}
+
+
+// ── Quest Chain Extensions (unlock after base quests) ────────────────────
+const QUEST_CHAINS = {
+  // Tormund chain: rats -> missing merchant -> investigate dungeon
+  tavern_investigation:{id:'tavern_investigation',giver:'tormund',title:'Something Rotten',
+    unlocks_after:'missing_merchant',
+    obj:'Investigate the Void Temple in the dungeon lower level.',
+    reward:{gold:200,xp:400,item:'Greater Heal'},
+    start:"Tormund lowers his voice. 'Aldwyn wasn't the first to disappear. Three merchants in a month. Something in that dungeon is drawing them in. The Void Temple in the lower levels — I heard cultists whispering about it. Will you investigate?'",
+    progress:"Tormund: 'The Void Temple — lower dungeon, west of the mid passage. Report back.'",
+    complete:"Tormund lets out a long breath. 'So it is the cultists. Void worshippers. I feared as much. Take this — and watch your back out there.'",
+    check:p=>(p.zonesVisited||[]).includes('void_temple')||p.room==='void_temple'},
+
+  // Mira chain: herbs -> venom -> rare ingredient
+  mira_deepwood:{id:'mira_deepwood',giver:'mira',title:'The Deepwood Root',
+    unlocks_after:'mira_venom',
+    obj:'Find the deepwood root in the Heart of the Swamp and return it to Mira.',
+    reward:{gold:100,xp:200,item:'Full Restore'},
+    start:"Mira leans forward. 'With the serpent venom and the right catalyst I can make something truly powerful. There is a root that only grows in the deepest swamp. I have not been able to retrieve it. Would you try?'",
+    progress:"Mira: 'The deepwood root. Heart of the swamp — south through the forest border.'",
+    complete:"Mira examines the root carefully, eyes bright. 'Perfect specimen. This will last me months.' She hands you a beautifully prepared full restoration draught. 'My finest work.'",
+    check:p=>p.inventory.some(i=>i.toLowerCase()==='deepwood root')},
+
+  // Aldric chain: blessing -> relic -> purge the lich
+  aldric_crusade:{id:'aldric_crusade',giver:'aldric',title:"The Crusade",
+    unlocks_after:'aldric_relic',
+    obj:'Defeat the Dungeon Lich and return to Father Aldric.',
+    reward:{gold:500,xp:1000,item:"Aldric's Blessing"},
+    start:"Aldric stands straighter than before. 'The relic is restored. Now the temple has power again. Use it — take this blessed oil and anoint your weapon before you face the Lich. Only a blessed blade can truly end this curse. Will you go?'",
+    progress:"Aldric: 'The Dungeon Lich awaits. Go north through the south gate, down to the dungeon, through to the lower levels. The standing stones will guide you.'",
+    complete:"Aldric falls to his knees in prayer, tears streaming. 'It is done. The curse is broken.' He rises and places his hands on your shoulders. 'You have saved this town. The Fallen bless you always.'",
+    check:p=>(p.achievements||[]).includes('lich_slayer')}
+};
+
+// Register chain items in EQ
+EQ["aldric's blessing"]={t:'trinket',atk:5,def:5,desc:"Father Aldric's holy blessing, made physical. Radiates warmth and light."};
+EQ['deepwood root']={t:'item',atk:0,def:0,desc:'A gnarled root with potent alchemical properties.'};
+
+// Add deepwood root to swamp_heart
+
 // Notice Board
 const notices = [];
 function addNotice(author,text){
@@ -469,6 +709,140 @@ function showBoard(ws){
   else notices.forEach((n,i)=>say(ws,'  ['+(i+1)+'] '+n.author+' ('+n.ts+'): '+n.text,'sys'));
   say(ws,'  POST [message] to pin a notice.  BOARD to view.','sys');
 }
+
+
+// ── Auction House ─────────────────────────────────────────────────────────
+const AUCTION_FILE = path.join(DATA_DIR, 'auction.json');
+let auctionItems = []; // {id, seller, item, price, listed}
+let auctionSeq = 1;
+function loadAuction(){try{const d=JSON.parse(fs.readFileSync(AUCTION_FILE,'utf8'));auctionItems=d.items||[];auctionSeq=d.seq||1;}catch{auctionItems=[];auctionSeq=1;}}
+function saveAuction(){try{if(!fs.existsSync(DATA_DIR))fs.mkdirSync(DATA_DIR,{recursive:true});fs.writeFileSync(AUCTION_FILE,JSON.stringify({items:auctionItems,seq:auctionSeq},null,2));}catch(e){console.error('[AUCTION SAVE]',e.message);}}
+loadAuction();
+
+function auctionCmd(ws,p,sub,rest){
+  switch(sub){
+    case'list':case'browse':case'':case undefined:{
+      say(ws,'═══ Auction House ══════════════════════════════','loot');
+      if(!auctionItems.length)return say(ws,'  No items listed. AUCTION SELL [item] [price] to list one.','sys');
+      auctionItems.forEach((a,i)=>{
+        const eq=EQ[a.item.toLowerCase()];
+        const stats=eq?` [${eq.t} ATK+${eq.atk} DEF+${eq.def}]`:'';
+        say(ws,`  [${a.id}] ${a.item}${stats} — ${a.price}g  (seller: ${a.seller})${a.seller===p.name?' [YOURS]':''}`,a.seller===p.name?'ok':'sys');
+      });
+      say(ws,'  AUCTION BUY [#] to purchase.  AUCTION CANCEL [#] to remove your listing.','sys');
+      break;
+    }
+    case'sell':{
+      const parts=rest.split(' ');
+      const priceStr=parts[parts.length-1];
+      const price=parseInt(priceStr);
+      if(isNaN(price)||price<1)return say(ws,'Usage: AUCTION SELL [item name] [price]  e.g. AUCTION SELL Iron Sword 50','err');
+      const itemQ=parts.slice(0,-1).join(' ');
+      const idx=p.inventory.findIndex(i=>i.toLowerCase().includes(itemQ.toLowerCase()));
+      if(idx===-1)return say(ws,`You don't have "${itemQ}" in your inventory.`,'err');
+      if(auctionItems.filter(a=>a.seller===p.name).length>=5)return say(ws,'You can only list 5 items at a time. Cancel one first.','err');
+      const item=p.inventory.splice(idx,1)[0];
+      const listing={id:auctionSeq++,seller:p.name,item,price,listed:new Date().toLocaleDateString()};
+      auctionItems.push(listing);
+      saveAuction();svc(p);sidebar(ws,p);
+      say(ws,`Listed ${item} for ${price}g on the Auction House. [Listing #${listing.id}]`,'ok');
+      bAll({type:'line',text:`📦 ${p.name} listed ${item} on the Auction House for ${price}g!`,cls:'loot'});
+      break;
+    }
+    case'buy':{
+      const id=parseInt(rest);
+      if(isNaN(id))return say(ws,'Usage: AUCTION BUY [#]  — use AUCTION LIST to see item numbers.','err');
+      const idx=auctionItems.findIndex(a=>a.id===id);
+      if(idx===-1)return say(ws,`Listing #${id} not found.`,'err');
+      const listing=auctionItems[idx];
+      if(listing.seller===p.name)return say(ws,"You can't buy your own listing. Use AUCTION CANCEL to remove it.",'err');
+      if(p.gold<listing.price)return say(ws,`Need ${listing.price}g — you have ${p.gold}g.`,'err');
+      p.gold-=listing.price;
+      p.inventory.push(listing.item);
+      auctionItems.splice(idx,1);
+      // Pay seller if online
+      const seller=[...sessions.values()].find(x=>x.loggedIn&&x.name===listing.seller);
+      if(seller){seller.gold+=listing.price;svc(seller);sidebar(seller.ws,seller);say(seller.ws,`📦 ${p.name} bought your ${listing.item} for ${listing.price}g!`,'loot');}
+      else{
+        // Save gold to seller's file for when they next log in
+        const sd=ldc(listing.seller.toLowerCase());
+        if(sd){sd.gold=(sd.gold||0)+listing.price;try{fs.writeFileSync(cf(listing.seller.toLowerCase()),JSON.stringify(sd,null,2));}catch{}}
+      }
+      saveAuction();svc(p);sidebar(ws,p);
+      say(ws,`Purchased ${listing.item} for ${listing.price}g!`,'ok');
+      const eq=EQ[listing.item.toLowerCase()];
+      if(eq)say(ws,`  [${eq.t.toUpperCase()}] ATK+${eq.atk} DEF+${eq.def} — EQUIP ${listing.item} to use it.`,'sys');
+      bAll({type:'line',text:`📦 ${p.name} bought ${listing.item} from ${listing.seller} at the Auction House!`,cls:'loot'});
+      break;
+    }
+    case'cancel':{
+      const id=parseInt(rest);
+      if(isNaN(id))return say(ws,'Usage: AUCTION CANCEL [#]','err');
+      const idx=auctionItems.findIndex(a=>a.id===id&&a.seller===p.name);
+      if(idx===-1)return say(ws,`Listing #${id} not found or not yours.`,'err');
+      const item=auctionItems.splice(idx,1)[0].item;
+      p.inventory.push(item);
+      saveAuction();svc(p);sidebar(ws,p);
+      say(ws,`Listing cancelled. ${item} returned to your inventory.`,'ok');
+      break;
+    }
+    default:say(ws,'Auction: LIST  SELL [item] [price]  BUY [#]  CANCEL [#]','sys');
+  }
+}
+
+
+// ── Day/Night Cycle & Weather ─────────────────────────────────────────────
+const WEATHER_TYPES = ['clear','clear','clear','rain','rain','storm','fog','fog'];
+const TIMES = ['dawn','morning','afternoon','dusk','evening','night','midnight','deep night'];
+let gameHour = new Date().getHours() % 8; // 0-7 maps to 8 time periods
+let weather = 'clear';
+let isNight = false;
+
+function updateDayNight(){
+  gameHour = (gameHour+1) % 8;
+  isNight = gameHour >= 4; // evening through deep night
+  weather = WEATHER_TYPES[Math.floor(Math.random()*WEATHER_TYPES.length)];
+  const timeStr = TIMES[gameHour];
+  const weatherStr = weather==='clear'?'The skies are clear.':weather==='rain'?'Rain falls steadily.':weather==='storm'?'A fierce storm rages!':'A thick fog rolls in.';
+  const msg = `[ ${timeStr.toUpperCase()} — ${weatherStr}${isNight?' Night creatures stir.':' Daylight holds.'} ]`;
+  bAll({type:'line',text:msg,cls:'narrate'});
+  if(weather==='clear'&&!isNight){
+    // Clear day XP bonus announcement
+    bAll({type:'line',text:'[ Clear skies — +10% XP bonus for the next hour! ]',cls:'ok'});
+  }
+  if(weather==='storm'){
+    bAll({type:'line',text:'[ STORM WARNING — Outdoor areas more dangerous! ]',cls:'err'});
+  }
+  console.log(`[Time] ${timeStr}, weather: ${weather}, night: ${isNight}`);
+}
+
+// Night-only monsters (added to outdoor rooms at night)
+const NIGHT_MONSTERS = [
+  {id:'shadow_stalker',name:'Shadow Stalker',hp:35,maxhp:35,atk:10,def:2,xp:85,gold:18,loot:'shadow essence'},
+  {id:'night_horror',name:'Night Horror',  hp:28,maxhp:28,atk:12,def:1,xp:70,gold:15,loot:'nightmare fang'}
+];
+const OUTDOOR_ROOMS = ['ashwood_edge','ashwood_deep','forest_camp','forest_ruins','swamp_border','swamp_heart','south_gate','town_square'];
+
+function applyNightMonsters(){
+  OUTDOOR_ROOMS.forEach(rid=>{
+    if(!world[rid])return;
+    if(isNight){
+      NIGHT_MONSTERS.forEach(nm=>{
+        if(!world[rid].monsters.find(m=>m.id===nm.id))
+          world[rid].monsters.push({...nm,dead:false});
+      });
+    }else{
+      world[rid].monsters=world[rid].monsters.filter(m=>!NIGHT_MONSTERS.find(n=>n.id===m.id));
+    }
+  });
+}
+
+// Run every real hour
+setInterval(()=>{updateDayNight();applyNightMonsters();}, 60*60*1000);
+// Initial state
+updateDayNight();applyNightMonsters();
+
+function getTimeWeather(){return {hour:TIMES[gameHour],weather,isNight};}
 
 // ── Parties ───────────────────────────────────────────────────────────────
 const parties = new Map();
@@ -515,7 +889,7 @@ function svc(p) {
     bio:p.bio||'', avatar:p.avatar||'', achievements:p.achievements||[],
     killCount:p.killCount||0, craftCount:p.craftCount||0,
     zonesVisited:p.zonesVisited||[], guildId:p.guildId||'',
-    quests:p.quests||{}, isAdmin:p.isAdmin||false, bagContents:p.bagContents||{}
+    quests:p.quests||{}, isAdmin:p.isAdmin||false, bagContents:p.bagContents||{}, autoloot:!!p.autoloot, aliases:p.aliases||{}, extraSkills:p.extraSkills||[]
   }, null, 2));
   }catch(e){console.error('[SAVE ERROR]',e.message);}
 }
@@ -530,7 +904,7 @@ const RTDEF = {
   deathmarkT:0, elementalT:0, _elementalActive:false,
   catalystT:0, _catalystActive:false, inspireT:0, _inspireActive:false,
   _darkPactActive:false, _arcaneBladeActive:false,
-  regenTimer:180, bio:'', avatar:'', achievements:[], killCount:0, bagContents:{},
+  regenTimer:900, bio:'', avatar:'', achievements:[], killCount:0, bagContents:{}, autoloot:false, aliases:{}, extraSkills:[],
   craftCount:0, zonesVisited:[], guildId:'', quests:{}, isAdmin:false,
   companion:null, zombies:[]
 };
@@ -607,18 +981,23 @@ function doUnequip(p, name, silent) {
   return true;
 }
 
-// ── Regen tick ────────────────────────────────────────────────────────────
+// ── Regen tick — full heal every 15 minutes ─────────────────────────────
+const REGEN_SECS = 15 * 60; // 900 seconds = 15 minutes
 setInterval(() => {
   for (const [ws, p] of sessions) {
-    if (!p.loggedIn || p.dead || p.inCombat || p.hp >= p.maxhp) continue;
+    if (!p.loggedIn || p.dead) continue;
+    if (p.regenTimer === undefined) p.regenTimer = REGEN_SECS;
     p.regenTimer--;
     if (p.regenTimer <= 0) {
-      p.regenTimer = 180;
-      const g = Math.min(2, p.maxhp - p.hp); p.hp += g;
-      say(ws, `[ +${g} HP natural healing. HP: ${p.hp}/${p.maxhp} ]`, 'ok');
-      sidebar(ws, p);
+      p.regenTimer = REGEN_SECS;
+      if (p.hp < p.maxhp) {
+        p.hp = p.maxhp;
+        say(ws, `[ ✦ Natural rest — HP fully restored! HP: ${p.hp}/${p.maxhp} ]`, 'ok');
+        sidebar(ws, p);
+      }
     }
-    if (p.regenTimer % 5 === 0) raw(ws, {type:'regen', secs:p.regenTimer, max:180});
+    // Update regen bar every 30 seconds
+    if (p.regenTimer % 30 === 0) raw(ws, {type:'regen', secs:p.regenTimer, max:REGEN_SECS});
   }
 }, 1000);
 
@@ -782,6 +1161,7 @@ function levelUp(ws, p) {
     if(p.level>=5)checkAch(ws,p,'level5');
     if(p.level>=10)checkAch(ws,p,'level10');
     if(p.level>=20)checkAch(ws,p,'level20');
+    if(p.level%10===0)setTimeout(()=>offerSpecialization(ws,p),500);
   }
 }
 
@@ -802,11 +1182,24 @@ function tickCD(p) {
 }
 
 // ── Combat ────────────────────────────────────────────────────────────────
+function getWeatherXPBonus(){ return (weather==='clear'&&!isNight)?1.1:1.0; }
+function getWeatherCombatMod(roomId){
+  // Storm makes outdoor monsters harder
+  if(weather==='storm'&&OUTDOOR_ROOMS.includes(roomId))return 1.3;
+  // Night makes all outdoor monsters stronger
+  if(isNight&&OUTDOOR_ROOMS.includes(roomId))return 1.2;
+  return 1.0;
+}
 function startCombat(ws, p, target) {
   const hostiles = (world[p.room].monsters||[]).filter(m=>!m.dead);
   if (!hostiles.length) return say(ws,'Nothing to attack here.','err');
   const m = (target&&hostiles.find(x=>x.name.toLowerCase().includes(target)))||hostiles[0];
   p.inCombat=true; p.enemy=m;
+  const combatMod=getWeatherCombatMod(p.room);
+  if(combatMod>1.0){
+    const modLabel=weather==='storm'?'Storm-empowered':'Night-shrouded';
+    say(ws,`  ⚡ ${modLabel} — this creature fights harder in these conditions!`,'err');
+  }
   say(ws, `You engage ${m.name}! [HP:${m.hp}/${m.maxhp}]`, 'combat');
   say(ws, 'ATTACK / FLEE / SKILL [name] / USE [item]', 'sys');
   sayRoom(p.room, `${p.name} engages ${m.name}!`, 'combat', ws);
@@ -833,13 +1226,20 @@ function killMonster(ws, p, m) {
   say(ws, `You slay ${m.name}!`, 'ok');
   sayRoom(p.room, `${p.name} slays ${m.name}!`, 'ok', ws);
   const bonus=(p.classId==='rogue'?rnd(1,12):0)+(p.raceId==='goblin'?rnd(1,8):0);
-  p.xp+=m.xp; p.gold+=m.gold+bonus; p.killCount=(p.killCount||0)+1;
+  const xpBonus=Math.floor(m.xp*getWeatherXPBonus());p.xp+=xpBonus; p.gold+=m.gold+bonus; p.killCount=(p.killCount||0)+1;
   say(ws, `+${m.xp} XP, +${m.gold+bonus} gold. [${p.killCount} kills]`, 'loot');
   if (m.loot) {
-    world[p.room].items.push(m.loot);
-    say(ws,`Dropped: ${m.loot}`,'loot');
-    const eqDrop=EQ[m.loot.toLowerCase()];
-    if(eqDrop)say(ws,`  [${eqDrop.t.toUpperCase()}] ATK+${eqDrop.atk} DEF+${eqDrop.def} — TAKE it then EQUIP ${m.loot}`,'loot');
+    if(p.autoloot){
+      p.inventory.push(m.loot);
+      say(ws,`[Auto-loot] ${m.loot} picked up.`,'loot');
+      const eq=EQ[m.loot.toLowerCase()];
+      if(eq)say(ws,`  [${eq.t.toUpperCase()}] ATK+${eq.atk} DEF+${eq.def} — EQUIP to use.`,'sys');
+    }else{
+      world[p.room].items.push(m.loot);
+      say(ws,`Dropped: ${m.loot}`,'loot');
+      const eqDrop=EQ[m.loot.toLowerCase()];
+      if(eqDrop)say(ws,`  [${eqDrop.t.toUpperCase()}] ATK+${eqDrop.atk} DEF+${eqDrop.def} — TAKE it then EQUIP ${m.loot}`,'loot');
+    }
   }
   // Party XP share
   const party = getParty(p.username);
@@ -910,31 +1310,57 @@ function doVictory(ws, p) {
 
 // ── NPC definitions ───────────────────────────────────────────────────────
 const NPCS = {
-  tormund: {name:'Tormund',title:'Barkeep',room:'tavern',ai:true,
+  tormund: {name:'Tormund',title:'Barkeep of the Broken Flagon',room:'tavern',ai:true,
+    portrait:'tormund',
+    desc:'A barrel-chested man with a grey-streaked beard and the permanently tired eyes of someone who has heard too many hard-luck stories. He has run the Broken Flagon for twenty years and knows every face that has passed through Shadowmere — including those that never came back.',
     personality:"You are Tormund, gruff but warm barkeep at The Broken Flagon in Shadowmere. Keep responses 2-3 sentences, stay in character. You know the dungeon is south then down, the shrine is in the town square, Grimwald makes weapons, Mira sells potions, the Shadow Broker is in the alley cellar.",
     greeting:"Tormund wipes down the bar. 'What'll it be?'",
     idle:["Tormund mutters: 'Haven't seen this many dead walk since the last purge...'","Tormund glances at the door. 'Every hero who went into that dungeon... most don't come back the same.'"]},
   grimwald:{name:'Grimwald',title:'Master Weaponsmith',room:'weaponsmith',ai:true,
+    portrait:'grimwald',
+    desc:'A mountain of a man, arms like forge bellows and hands scarred from a lifetime at the anvil. Grimwald speaks rarely and means every word. The weapons on his walls have ended more monsters than any adventurer can count.',
     personality:"You are Grimwald, taciturn master weaponsmith. Speak in short blunt sentences. You care deeply about quality steel. 1-2 sentences maximum.",
     greeting:"Grimwald doesn't look up. 'Shop or talk. Not both.'",
     idle:["Grimwald holds a blade to the light and plunges it back into the forge.","Grimwald growls: 'Dull blade gets you killed.'"]},
   mira:    {name:'Mira',title:'Apothecary',room:'apothecary',ai:true,
+    portrait:'mira',
+    desc:'A silver-haired woman of indeterminate age with quick, precise hands and an unsettling habit of diagnosing ailments before you have mentioned them. She has studied at three colleges of medicine and chosen this ruined town because, as she says, it keeps her busiest.',
     personality:"You are Mira, calm knowledgeable apothecary. Speak thoughtfully and precisely. 2-3 sentences. You know about herbs, potions, and monster drops.",
     greeting:"Mira looks up from her mortar. 'What ails you, traveller?'",
     idle:["Mira carefully measures a powder, lips moving silently.","Mira says softly: 'The dungeon air carries a miasma. Come to me if you feel weakened.'"]},
-  aldric:  {name:'Father Aldric',title:'Last Priest',room:'temple',ai:true,
+  aldric:  {name:'Father Aldric',title:'Last Priest of the Temple',room:'temple',ai:true,
+    portrait:'aldric',
+    desc:'The last surviving priest of the Temple of the Fallen. Once the head of a thriving order; now an old man alone in a ruin, keeping candles lit as an act of stubbornness against the dark. His faith has been shaken but never broken.',
     personality:"You are Father Aldric, last priest of the Temple of the Fallen. Old, tired, sorrowful. Formal archaic speech. 2-3 sentences.",
     greeting:"Father Aldric turns from the altar, eyes red from weeping. 'Bless you for coming, child.'",
     idle:["Father Aldric whispers a prayer, hands clasped tight.","Aldric murmurs: 'The lich was once a great wizard who sought immortality. He found it — at terrible cost.'"]},
   broker:  {name:'The Shadow Broker',title:'Dealer in Rare Goods',room:'black_market',ai:true,
+    portrait:'broker',
+    desc:'No one knows the Shadow Broker real name, race, or history. They have been in that cellar, it is said, longer than the town has stood. They deal in objects that have no business existing and information that has no business being known.',
     personality:"You are the Shadow Broker, mysterious and cryptic. Speak in half-sentences, implying more than you say. 1-2 sentences, occasionally unsettling.",
     greeting:"The hooded figure doesn't move. A rasping voice: 'I wondered when you'd find me.'",
     idle:["The Shadow Broker seems to watch you, though you can't see their eyes.","A whisper: 'I know what you seek. The question is the price.'"]},
-  pip:     {name:'Pip',title:'Animal Merchant',room:'pet_store',ai:true,
+  pip:     {name:'Pip',title:'Exotic Animal Merchant',room:'pet_store',ai:true,
+    portrait:'pip',
+    desc:'A halfling of boundless energy and zero self-preservation instinct who has been bitten, stung, clawed, and sat on by every creature in the Menagerie. Pip considers this a sign of mutual affection. Every animal here has a name, a birthday, and a complete backstory.',
     personality:"You are Pip, enthusiastic halfling who runs the Exotic Menagerie. You LOVE animals with infectious enthusiasm. Very cheerful, uses exclamation points. 2-3 sentences.",
     greeting:"Pip bounces up. 'Oh! A visitor! Don't mind Chester — he bites but only out of love!'",
     idle:["Pip coos at a shadow fox: 'Yes you are the most magnificent thing...'","Pip calls out: 'The Iron Tortoise is very underrated!'"]},
-  keeper:  {name:'The Keeper',title:'Guardian of the Shrine',room:'adventure_shrine',ai:true,
+  marta:   {name:'Marta',title:'General Store Owner',room:'ashford_store',ai:true,
+    personality:"You are Marta, tough practical storekeeper in Ashford Village. Survivors settled this village after the old war. You are wary of strangers but fair. Short direct sentences. You know about the bandit problem east of town.",
+    greeting:"Marta looks you up and down. 'Coin or no coin, that's the question.'",
+    idle:["Marta wipes down the counter. 'Bandits east of town getting bolder every week.'","Marta grunts: 'We don't get many outsiders here. Usually they're running from something.'"]},
+  barret:  {name:'Old Barret',title:'Innkeeper',room:'ashford_inn',ai:true,
+    personality:"You are Old Barret, weathered innkeeper of the Rusted Nail in Ashford Village. You have seen everything in your long years. Warm but tired. You know local gossip and the history of the village.",
+    greeting:"Barret looks up slowly. 'Long road to find Ashford. Most go around. What brings you here?'",
+    idle:["Barret polishes a glass and stares at nothing.","Barret murmurs: 'Village used to be three times this size. Before the war.'"]},
+  finn:    {name:'Brother Finn',title:'Healer',room:'ashford_healer',ai:true,
+    personality:"You are Brother Finn, a gentle travelling monk who stayed in Ashford to tend the sick. Calm, compassionate, slightly otherworldly. You know about healing, herbs, and the spiritual nature of the Dungeon Lich's curse.",
+    greeting:"Finn looks up with kind eyes. 'Ah, a traveller. Are you hurt? Sit, sit.'",
+    idle:["Finn hums softly while grinding herbs.","Finn says quietly: 'The darkness in the dungeon seeps into the very soil here. I can feel it.'"]},
+  keeper:  {name:'The Keeper',title:'Guardian of the Adventure Shrine',room:'adventure_shrine',ai:true,
+    portrait:'keeper',
+    desc:'An ancient figure of indeterminate age, gender, and possibly species. The Keeper has tended the shrine since before living memory. They speak of heroes who passed through centuries ago as though the encounters were yesterday. They are always calm. This is more unsettling than anger would be.',
     personality:"You are the Keeper, ancient guardian of the Adventure Shrine. Calm, measured, with ancient sadness. Know details about every adventure zone and their bosses. Poetic, 2-3 sentences.",
     greeting:"The Keeper turns slowly. Ancient eyes regard you. 'Another soul seeking glory in distant lands.'",
     idle:["The Keeper traces a glowing rune on the standing stone.","The Keeper says: 'The stones remember every hero who stepped through. Most are names now. Only names.'"]}
@@ -1036,6 +1462,20 @@ async function doTalk(ws,p,target){
   // Quest handling
   let shownQ=false;
   const npcQuests=Object.values(QUESTS).filter(q=>q.giver===Object.keys(NPCS).find(k=>NPCS[k]===npc));
+  // Check chain quest completions first
+  for(const q of Object.values(QUEST_CHAINS)){
+    if((p.quests||{})[q.id]==='active'&&q.check(p)){
+      const giverNpcKey=Object.keys(NPCS).find(k=>NPCS[k]===npc);
+      if(q.giver===giverNpcKey){
+        say(ws,`[ Quest Complete: ${q.title} ]`,'loot');
+        say(ws,q.complete,'narrate');
+        if(q.reward.gold){p.gold+=q.reward.gold;say(ws,`  +${q.reward.gold} gold!`,'loot');}
+        if(q.reward.xp){p.xp+=q.reward.xp;say(ws,`  +${q.reward.xp} XP!`,'loot');levelUp(ws,p);}
+        if(q.reward.item){p.inventory.push(q.reward.item);say(ws,`  Received: ${q.reward.item}!`,'loot');}
+        p.quests[q.id]='done';svc(p);sidebar(ws,p);shownQ=true;break;
+      }
+    }
+  }
   for(const q of npcQuests){
     if(hasQ(p,q.id)&&!doneQ(p,q.id)){
       if(q.check(p)){finishQuest(ws,p,q.id);shownQ=true;break;}
@@ -1048,6 +1488,21 @@ async function doTalk(ws,p,target){
       say(ws,`  Reward: ${rw}`,'loot');
       say(ws,'  Type ACCEPT to take this quest, or ASK [question] to talk.','sys');
       p._pendingQ=q.id;shownQ=true;break;
+    }
+  }
+  // Check chain quests
+  if(!shownQ){
+    const chainQ=Object.values(QUEST_CHAINS).find(q=>{
+      const giverNpc=Object.keys(NPCS).find(k=>NPCS[k]===npc);
+      return q.giver===giverNpc && !hasQ(p,q.id) && !doneQ(p,q.id) && doneQ(p,q.unlocks_after);
+    });
+    if(chainQ){
+      say(ws,`[ New Quest: ${chainQ.title} ]`,'loot');say(ws,chainQ.start,'narrate');
+      say(ws,`  Objective: ${chainQ.obj}`,'sys');
+      const rw=[chainQ.reward.gold?chainQ.reward.gold+'g':'',chainQ.reward.xp?chainQ.reward.xp+' XP':'',chainQ.reward.item||''].filter(Boolean).join(', ');
+      say(ws,`  Reward: ${rw}`,'loot');
+      say(ws,'  Type ACCEPT to take this quest.','sys');
+      p._pendingQ=chainQ.id;shownQ=true;
     }
   }
   if(!shownQ){say(ws,'  Type ASK [question] to talk freely.','sys');}
@@ -1482,6 +1937,11 @@ function handleCmd(ws,p,raw){
     adminCmd(ws,p,raw);return;
   }
 
+  // Resolve aliases before processing
+  const aliasResolved=(p.aliases||{})[v];
+  if(aliasResolved&&v!==aliasResolved.split(' ')[0]){
+    return handleCmd(ws,p,aliasResolved+(rest?' '+rest:''));
+  }
   // ── COMBAT MODE ──────────────────────────────────────────────────────────
   if(p.inCombat){
     const words=input.split(/\s+/),v=words[0];
@@ -1504,7 +1964,7 @@ function handleCmd(ws,p,raw){
     }
     // Skill execution
     const cls=CLASSES[p.classId];
-    const findSid=q=>(cls?.skills||[]).find(s=>{const sk=SK[s];return sk&&(sk.n.toLowerCase().includes(q)||s===q.replace(/ /g,'_'));});
+    const allSkills=[...(cls?.skills||[]),...(p.extraSkills||[])];const findSid=q=>allSkills.find(s=>{const sk=SK[s];return sk&&(sk.n.toLowerCase().includes(q)||s===q.replace(/ /g,'_'));});
     if(v==='skill'||v==='cast'){
       const sid=findSid(words.slice(1).join(' '));
       if(!sid)return say(ws,'Unknown skill. Type SKILLS.','err');
@@ -1566,6 +2026,9 @@ function handleCmd(ws,p,raw){
   switch(v){
     case'look':case'l':{
       if(rest){
+        // Check for NPC in room first
+        const npcMatch=Object.values(NPCS).find(n=>n.room===p.room&&n.name.toLowerCase().includes(rest.toLowerCase()));
+        if(npcMatch){showNPCProfile(ws,npcMatch);break;}
         const tgt=[...sessions.values()].find(x=>x.loggedIn&&x.name&&x.name.toLowerCase()===rest.toLowerCase());
         if(tgt){showProfile(ws,p,tgt);break;}
         const allItems=[...p.inventory,...(world[p.room]?.items||[]),...p.equipped];
@@ -1642,7 +2105,11 @@ function handleCmd(ws,p,raw){
       const cls=CLASSES[p.classId];if(!cls)return;
       say(ws,`─── ${cls.name} Skills ─────────────────────`,'sys');
       (cls.skills||[]).forEach(sid=>{const sk=SK[sid];if(!sk)return;const cd=(p.cd||{})[sid]||0;say(ws,`  ${sk.n.padEnd(18)}${sk.cmb?'':'✦ '}${cd>0?`[cd:${cd}]`:'[READY]'}`,'sys');});
-      say(ws,'  ✦ = usable outside combat','sys');break;
+      if(p.extraSkills&&p.extraSkills.length){
+        say(ws,'  ─── Specialization Skills ──────────────','sys');
+        p.extraSkills.forEach(sid=>{const sk=SK[sid];if(!sk)return;const cd=(p.cd||{})[sid]||0;say(ws,`  ${sk.n.padEnd(18)}${sk.cmb?'':'✦ '}${cd>0?`[cd:${cd}]`:'[READY]'} ★`,'skill');});
+      }
+      say(ws,'  ✦ = usable outside combat  ★ = specialization','sys');break;
     }
     case'tame':doTame(ws,p);break;
     case'dismiss':{if(!p.companion)return say(ws,'No companion.','sys');say(ws,`${p.companion.name} parts ways.`,'narrate');p.companion=null;sidebar(ws,p);break;}
@@ -1812,6 +2279,13 @@ function handleCmd(ws,p,raw){
       if(!p.quests)p.quests={};p.quests[qid]='active';p._pendingQ=null;
       say(ws,`[ Quest Accepted: ${q.title} ]`,'ok');say(ws,`Objective: ${q.obj}`,'sys');
       if(qid==='temple_blessing'){finishQuest(ws,p,qid);return;}
+    // Check if it's a chain quest
+    const chainDef=QUEST_CHAINS[qid];
+    if(chainDef){
+      if(!p.quests)p.quests={};p.quests[qid]='active';p._pendingQ=null;
+      say(ws,`[ Quest Accepted: ${chainDef.title} ]`,'ok');
+      say(ws,`Objective: ${chainDef.obj}`,'sys');svc(p);return;
+    }
       svc(p);break;
     }
     case'quests':case'journal':case'q':{
@@ -1839,6 +2313,45 @@ function handleCmd(ws,p,raw){
     case'profile':showProfile(ws,p,p);break;
     case'bio':{if(!rest)return say(ws,'BIO [text]','err');p.bio=rest.slice(0,300);svc(p);say(ws,'Biography updated.','ok');break;}
     case'board':case'notices':showBoard(ws);break;
+    case'leaders':case'leaderboard':case'lb':showLeaderboard(ws,rest);break;
+    case'auction':case'ah':{const pts=rest.split(' ');auctionCmd(ws,p,pts[0].toLowerCase(),pts.slice(1).join(' '));break;}
+    case'housing':case'room':case'inn':{const pts=rest.split(' ');housingCmd(ws,p,pts[0]||'enter',pts.slice(1).join(' '));break;}
+    case'autoloot':{
+      p.autoloot=!p.autoloot;
+      say(ws,`Auto-loot ${p.autoloot?'ON — items picked up automatically':'OFF — items dropped on ground'}.`,p.autoloot?'ok':'sys');
+      svc(p);break;
+    }
+    case'alias':{
+      if(!rest){
+        say(ws,'Your aliases:','sys');
+        const aliases=p.aliases||{};
+        if(!Object.keys(aliases).length)say(ws,'  None set. ALIAS [shortcut] [command] to create one.','sys');
+        else Object.entries(aliases).forEach(([k,v])=>say(ws,`  ${k} = ${v}`,'sys'));
+        break;
+      }
+      const [aliasKey,...aliasVal]=rest.split(' ');
+      if(!aliasVal.length){
+        if(p.aliases&&p.aliases[aliasKey]){delete p.aliases[aliasKey];say(ws,`Alias "${aliasKey}" removed.`,'ok');}
+        else say(ws,`No alias "${aliasKey}". ALIAS [shortcut] [command] to create.`,'err');
+      }else{
+        if(!p.aliases)p.aliases={};
+        p.aliases[aliasKey.toLowerCase()]=aliasVal.join(' ');
+        say(ws,`Alias set: ${aliasKey} = ${aliasVal.join(' ')}`,'ok');
+      }
+      svc(p);break;
+    }
+    case'choose':{doChooseSpec(ws,p,rest);break;}
+    case'time':case'weather':{
+      const tw=getTimeWeather();
+      say(ws,`Time: ${tw.hour} — Weather: ${tw.weather} — ${tw.isNight?'Night (creatures stronger)':'Day'}`,  'narrate');break;
+    }
+    case'chat':{
+      // Channel chat: CHAT GLOBAL/TRADE [message]
+      const parts=rest.split(' ');const ch=parts[0].toLowerCase();const msg=parts.slice(1).join(' ');
+      if(ch==='trade'&&msg){bAll({type:'line',text:`[TRADE] ${p.name}: ${msg}`,cls:'shop'});break;}
+      if(ch==='global'&&msg){bAll({type:'line',text:`[GLOBAL] ${p.name}: ${msg}`,cls:'chat'});break;}
+      say(ws,'CHAT GLOBAL [msg] or CHAT TRADE [msg]','sys');break;
+    }
     case'post':{
       if(!rest)return say(ws,'POST [message] to pin a notice on the board.','err');
       if(rest.length>200)return say(ws,'Notice too long (max 200 chars).','err');
@@ -1859,6 +2372,21 @@ function handleCmd(ws,p,raw){
   }
 }
 
+function showNPCProfile(ws,npc){
+  // Send NPC profile card to client — same format as player profile
+  // but with npc-specific fields
+  raw(ws,{
+    type:'npc_profile',
+    name:npc.name,
+    title:npc.title||'',
+    desc:npc.desc||'',
+    portrait:npc.portrait||'',
+    greeting:npc.greeting||'',
+    room:world[npc.room]?.name||npc.room,
+    hasQuests:!!(Object.values(QUESTS).find(q=>q.giver===Object.keys(NPCS).find(k=>NPCS[k]===npc)))
+  });
+}
+
 function showProfile(ws,viewer,target){
   const tGuild=target.guildId?guilds[target.guildId]:null;
   raw(ws,{type:'profile',name:target.name,raceName:target.raceName||'Unknown',className:target.className||'Unknown',
@@ -1875,7 +2403,8 @@ function showMap(ws){
   say(ws,'TOWN: Guild District[N of Temple]-Temple-Town Square[SHRINE up]-Tavern-Apothecary','zone');
   say(ws,'      Market St[PET STORE<]-Weaponsmith | Alley-Shadow Broker','sys');
   say(ws,'      South Gate -> Ashwood Forest / down Dungeon Entrance','sys');
-  say(ws,'FOREST: Ashwood Edge->Deep->Swamp Border->Swamp Heart | Edge->Camp | Deep->Ruins','zone');
+  say(ws,'FOREST: Ashwood Edge->Deep[->EAST Ashford Village]->Swamp Border->Heart | Edge->Camp | Deep->Ruins','zone');
+  say(ws,'ASHFORD: Square->Store(W) Store(E) Healer(N) Gate(S) Outskirts->Bandit Camp','zone');
   say(ws,'DUNGEON: Entrance->Hall->Crypts->Vault | Hall->Prison | Hall->Well','zone');
   say(ws,'         Hall->Armory->Mid | Temple->Temple Crypt->Mid','sys');
   say(ws,'         Mid->Dragon Lair | Mid->Void Temple | Mid->Antechamber->LICH BOSS','sys');
@@ -1911,6 +2440,22 @@ function showHelp(ws,p){
   say(ws,'profile / bio [text]  View or set character profile','sys');
   say(ws,'who / map / save      Online players / map / save','sys');
   say(ws,'say / yell / tell     Chat commands','sys');
+  say(ws,'chat global/trade [msg] Broadcast to all players','sys');
+  say(ws,'--- Economy ------------------------------------','sys');
+  say(ws,'auction list             Browse auction listings','sys');
+  say(ws,'auction sell [item] [g]  List item for sale','sys');
+  say(ws,'auction buy [#]          Purchase a listing','sys');
+  say(ws,'auction cancel [#]       Remove your listing','sys');
+  say(ws,'--- World --------------------------------------','sys');
+  say(ws,'time / weather           Current time and weather','sys');
+  say(ws,'leaders [level/kills/gold] View leaderboards','sys');
+  say(ws,'housing rent/enter       Rent a room at an inn (50g)','sys');
+  say(ws,'housing store/retrieve   Manage room storage','sys');
+  say(ws,'--- Quality of Life ----------------------------','sys');
+  say(ws,'autoloot                 Toggle auto item pickup','sys');
+  say(ws,'alias [key] [command]    Set command shortcuts','sys');
+  say(ws,'alias                    View your aliases','sys');
+  say(ws,'choose [#]               Choose specialization skill','sys');
   if(p){const cls=CLASSES[p.classId];if(cls)say(ws,`Skills: ${(cls.skills||[]).map(s=>SK[s]?.n||s).join(', ')}`,'skill');}
 }
 
@@ -1937,6 +2482,8 @@ function handleAuth(ws,sess,inputMsg){
       const p=hydrate(data);p.ws=ws;p.loggedIn=true;sessions.set(ws,p);
       say(ws,`Welcome back, ${p.name} the ${p.raceName||''} ${p.className}!`,'ok');
       bAll({type:'line',text:`${p.name} the ${p.raceName||''} ${p.className} has entered Shadowmere.`,cls:'narrate'});
+      // Restore saved avatar to client
+      if(p.avatar){raw(ws,{type:'avatar_saved',avatar:p.avatar});}
       try{describeRoom(ws,p);}catch(e){console.error('[DESCRIBE ERROR]',e.message);}
       try{sidebar(ws,p);}catch(e){console.error('[SIDEBAR ERROR]',e.message);}
       break;
