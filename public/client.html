@@ -240,6 +240,44 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
   </div>
 </div>
 
+<!-- ITEM PROFILE MODAL -->
+<div id="item-profile-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center">
+  <div id="item-profile-card" style="background:var(--bg1);border:1px solid var(--border2);border-radius:6px;width:460px;max-width:95vw;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 0 60px rgba(58,158,222,.15)">
+    <!-- Header: image + name + stats -->
+    <div style="display:flex;align-items:stretch;border-bottom:1px solid var(--border);background:var(--bg0);min-height:150px">
+      <div id="item-img-wrap" style="width:110px;flex-shrink:0;background:var(--bg2);overflow:hidden;display:flex;align-items:center;justify-content:center">
+        <img id="item-profile-img" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:none">
+        <div id="item-profile-img-ph" style="font-size:36px;color:var(--text3)">⚔</div>
+      </div>
+      <div style="flex:1;padding:16px;display:flex;flex-direction:column;justify-content:center;gap:4px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div id="item-profile-name" style="font-family:var(--serif);font-size:17px;color:var(--accent);letter-spacing:2px">—</div>
+          <div id="item-legendary-badge" style="display:none;font-size:9px;color:var(--gold);border:1px solid var(--gold);padding:2px 6px;border-radius:2px;letter-spacing:1px">LEGENDARY</div>
+        </div>
+        <div id="item-profile-type" style="font-size:10px;color:var(--teal);letter-spacing:2px;text-transform:uppercase">—</div>
+        <div id="item-profile-stats" style="display:flex;gap:12px;margin-top:6px;flex-wrap:wrap"></div>
+      </div>
+    </div>
+    <!-- Body: description + lore -->
+    <div style="padding:16px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px">
+      <div>
+        <div style="font-size:9px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;margin-bottom:6px">Description</div>
+        <div id="item-profile-desc" style="font-size:12px;color:var(--text2);line-height:1.8">—</div>
+      </div>
+      <div id="item-lore-section" style="display:none;border-top:1px solid var(--border);padding-top:12px">
+        <div style="font-size:9px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:8px">✦ History</div>
+        <div id="item-profile-lore" style="font-size:11px;color:var(--text);line-height:1.9;font-style:italic;white-space:pre-wrap">—</div>
+      </div>
+    </div>
+    <!-- Footer -->
+    <div style="padding:10px 16px;border-top:1px solid var(--border);background:var(--bg0);display:flex;gap:8px;justify-content:flex-end">
+      <button id="item-equip-btn" style="display:none" class="pfoot-btn" onclick="cmd('equip '+currentItemName);closeItemProfile()">EQUIP</button>
+      <button id="item-use-btn" style="display:none" class="pfoot-btn ok" onclick="cmd('use '+currentItemName);closeItemProfile()">USE</button>
+      <button class="pfoot-btn" onclick="closeItemProfile()">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- MOB PROFILE MODAL -->
 <div id="mob-profile-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center">
   <div id="mob-profile-card" style="background:var(--bg1);border:1px solid #8b3030;border-radius:6px;width:460px;max-width:95vw;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 0 60px rgba(180,40,20,.2)">
@@ -542,6 +580,7 @@ function handle(msg){
     case'mob_portrait': showMobCard(msg); break;
     case'mob_hp':       updateMobHP(msg); break;
     case'mob_profile':  openMobProfile(msg); break;
+    case'item_profile': openItemProfile(msg); break;
     case'pick_race':   openPicker('race', msg.races); break;
     case'pick_class':  openPicker('class', msg.classes); break;
   }
@@ -980,6 +1019,56 @@ function closeNPCProfile(){document.getElementById('npc-overlay').style.display=
 document.getElementById('npc-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('npc-overlay'))closeNPCProfile();});
 
 // ── MONSTER COMBAT CARD ──────────────────────────────────────────────────
+let currentItemName='';
+function openItemProfile(d){
+  currentItemName=d.name||'';
+  // Image
+  const img=document.getElementById('item-profile-img');
+  const ph=document.getElementById('item-profile-img-ph');
+  if(d.img){img.src=d.img+'?t='+Date.now();img.style.display='block';ph.style.display='none';}
+  else{img.style.display='none';ph.style.display='flex';
+    // Set icon based on type
+    const icons={weapon:'⚔',armor:'🛡',trinket:'💎',bag:'🎒',potion:'🧪',item:'📦'};
+    ph.textContent=d.stats?icons[d.stats.t]||'📦':'📦';
+  }
+  // Name + legendary badge
+  document.getElementById('item-profile-name').textContent=d.name||'Unknown';
+  document.getElementById('item-legendary-badge').style.display=d.isLegendary?'inline-block':'none';
+  // Type
+  const typeLabel=d.stats?d.stats.t.toUpperCase():'ITEM';
+  document.getElementById('item-profile-type').textContent=typeLabel;
+  // Stats
+  const statsEl=document.getElementById('item-profile-stats');
+  statsEl.innerHTML='';
+  if(d.stats){
+    const s=d.stats;
+    if(s.atk!==undefined&&s.atk!==0) statsEl.innerHTML+=`<span style="font-size:11px;color:var(--orange)">ATK ${s.atk>0?'+':''}${s.atk}</span>`;
+    if(s.def!==undefined&&s.def!==0) statsEl.innerHTML+=`<span style="font-size:11px;color:var(--teal)">DEF ${s.def>0?'+':''}${s.def}</span>`;
+    if(s.slots) statsEl.innerHTML+=`<span style="font-size:11px;color:var(--purple)">${s.slots} slots</span>`;
+  }
+  // Description
+  document.getElementById('item-profile-desc').textContent=d.desc||'A useful item.';
+  // Lore
+  const loreSection=document.getElementById('item-lore-section');
+  if(d.lore){loreSection.style.display='block';document.getElementById('item-profile-lore').textContent=d.lore;}
+  else{loreSection.style.display='none';}
+  // Action buttons
+  const equipBtn=document.getElementById('item-equip-btn');
+  const useBtn=document.getElementById('item-use-btn');
+  if(d.isEquippable&&d.stats&&(d.stats.t==='weapon'||d.stats.t==='armor'||d.stats.t==='trinket'||d.stats.t==='bag')){
+    equipBtn.style.display='inline-block';useBtn.style.display='none';
+  } else if(d.stats&&d.stats.t==='potion'){
+    equipBtn.style.display='none';useBtn.style.display='inline-block';
+  } else {
+    equipBtn.style.display='none';useBtn.style.display='none';
+  }
+  document.getElementById('item-profile-overlay').style.display='flex';
+}
+function closeItemProfile(){document.getElementById('item-profile-overlay').style.display='none';}
+document.getElementById('item-profile-overlay').addEventListener('click',e=>{
+  if(e.target===document.getElementById('item-profile-overlay'))closeItemProfile();
+});
+
 function openMobProfile(d){
   const img=document.getElementById('mob-profile-img');
   const ph=document.getElementById('mob-profile-img-ph');
