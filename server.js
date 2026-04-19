@@ -1,4 +1,6 @@
 'use strict';
+process.on('uncaughtException',e=>{console.error('[UNCAUGHT]',e.message,e.stack);});
+process.on('unhandledRejection',(r)=>{console.error('[UNHANDLED REJECTION]',r);});
 const http = require('http');
 const fs   = require('fs');
 const path = require('path');
@@ -1752,6 +1754,7 @@ function showHelp(ws,p){
 
 // ── Auth flow ─────────────────────────────────────────────────────────────
 function handleAuth(ws,sess,raw){
+  try{
   const msg=raw.trim();
   switch(sess.state){
     case'WELCOME':
@@ -1807,6 +1810,10 @@ function handleAuth(ws,sess,raw){
       describeRoom(ws,p);sidebar(ws,p);break;
     }
   }
+  }catch(e){
+    console.error('[AUTH ERROR]',e.message,e.stack);
+    try{say(ws,'Registration error. Please refresh and try again.','err');}catch(e2){}
+  }
 }
 
 // ── HTTP + WebSocket server ───────────────────────────────────────────────
@@ -1831,11 +1838,17 @@ wss.on('connection',ws=>{
   say(ws,'╚════════════════════════════════════════════════════╝','sep');
   say(ws,`${online} player(s) online.  Type LOGIN or REGISTER.`,'sys');
   ws.on('message',data=>{
-    let raw2;try{raw2=data.toString().trim();}catch{return;}
-    const p=sessions.get(ws);if(!p)return;
-    if(!p.loggedIn){handleAuth(ws,p,raw2);return;}
-    handleCmd(ws,p,raw2);
-    if(p.loggedIn)svc(p);
+    try{
+      let raw2;try{raw2=data.toString().trim();}catch{return;}
+      const p=sessions.get(ws);if(!p)return;
+      if(!p.loggedIn){handleAuth(ws,p,raw2);return;}
+      handleCmd(ws,p,raw2);
+      // Only save if fully logged in player with username
+      if(p.loggedIn&&p.username)svc(p);
+    }catch(e){
+      console.error('[MSG ERROR]',e.message,e.stack);
+      try{say(ws,'An error occurred. Please try again.','err');}catch{}
+    }
   });
   ws.on('close',()=>{
     const p=sessions.get(ws);
@@ -1855,4 +1868,3 @@ server.listen(PORT,()=>{
   console.log('  ╚══════════════════════════════════════════════════╝');
   console.log('');
 });
-
