@@ -521,6 +521,7 @@ function initWorld() {
   for (const [id, t] of Object.entries(WT)) {
     world[id] = {
       ...t,
+      exits: {...(t.exits||{})},  // deep copy exits so they can't be mutated
       items: [...(t.base||[])],
       monsters: (t.mon||[]).map(m => ({...m}))
     };
@@ -2110,7 +2111,12 @@ function handleCmd(ws,p,raw){
 
   if(DIRS[v]){
     const dir=DIRS[v],rm=world[p.room];
-    if(!rm||!rm.exits||!rm.exits[dir])return say(ws,"You can't go that way.",'err');
+    if(!rm){
+      console.error('[MOVE] Room not found:',p.room,'for player',p.username);
+      p.room='town_square';
+      return say(ws,"Something went wrong. Returning to Town Square.",'err');
+    }
+    if(!rm.exits||!rm.exits[dir])return say(ws,"You can't go that way.",'err');
     sayRoom(p.room,`${p.name} heads ${dir}.`,'narrate',ws);
     p.room=rm.exits[dir];say(ws,`You head ${dir}.`,'narrate');
     describeRoom(ws,p);sayRoom(p.room,`${p.name} arrives from the ${OPP[dir]||'elsewhere'}.`,'narrate',ws);sidebar(ws,p);
@@ -2594,7 +2600,13 @@ function handleAuth(ws,sess,inputMsg){
       const data=ldc(sess.user);
       if(!data||data.passwordHash!==hash(msg)){sess.state='WELCOME';return say(ws,'Wrong password.','err');}
       if([...sessions.values()].find(s=>s.username===sess.user&&s.loggedIn)){sess.state='WELCOME';return say(ws,'Already logged in elsewhere.','err');}
-      const p=hydrate(data);p.ws=ws;p.loggedIn=true;sessions.set(ws,p);
+      const p=hydrate(data);p.ws=ws;p.loggedIn=true;
+      // Validate saved room — if it doesn't exist, send to town square
+      if(!world[p.room]){
+        console.log('[LOGIN] Invalid room "'+p.room+'" for '+p.username+', resetting to town_square');
+        p.room='town_square';
+      }
+      sessions.set(ws,p);
       say(ws,`Welcome back, ${p.name} the ${p.raceName||''} ${p.className}!`,'ok');
       bAll({type:'line',text:`${p.name} the ${p.raceName||''} ${p.className} has entered Shadowmere.`,cls:'narrate'});
       // Restore saved avatar to client
