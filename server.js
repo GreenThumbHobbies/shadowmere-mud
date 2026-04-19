@@ -1762,9 +1762,9 @@ function showHelp(ws,p){
 
 
 // ── Auth flow ─────────────────────────────────────────────────────────────
-function handleAuth(ws,sess,raw){
+function handleAuth(ws,sess,inputMsg){
   try{
-  const msg=raw.trim();
+  const msg=inputMsg.trim();
   switch(sess.state){
     case'WELCOME':
       if(msg.toLowerCase()==='login'){sess.state='LOGIN_USER';say(ws,'Username:','sys');}
@@ -1796,12 +1796,20 @@ function handleAuth(ws,sess,raw){
       if(msg.length<4)return say(ws,'Min 4 characters.','err');
       sess.pass=msg;sess.state='REG_NAME';say(ws,'Your character name (visible to others):','sys');break;
     case'REG_NAME':
+      console.log('[REG] Name received:',msg);
       sess.charName=msg.replace(/[^a-zA-Z ]/g,'').trim().slice(0,20);
       if(sess.charName.length<2)return say(ws,'Name too short.','err');
       sess.state='REG_RACE';
-      raw(ws,{type:'pick_race',races:Object.entries(RACES).map(([id,r])=>({id,name:r.name,bonus:r.bonus,hp:r.hp,atk:r.atk,def:r.def,gold:r.gold}))});
+      console.log('[REG] Sending pick_race, races count:',Object.keys(RACES).length);
+      try{
+        const raceData=Object.entries(RACES).map(([id,r])=>({id,name:r.name,bonus:r.bonus,hp:r.hp,atk:r.atk,def:r.def,gold:r.gold}));
+        console.log('[REG] Race data built OK, sending...');
+        raw(ws,{type:'pick_race',races:raceData});
+        console.log('[REG] pick_race sent OK');
+      }catch(re){console.error('[REG] pick_race FAILED:',re.message,re.stack);}
       break;
     case'REG_RACE':{
+      console.log('[REG] Race received:',msg);
       const rid=msg.toLowerCase().trim();
       if(!RACES[rid])return say(ws,`Invalid race. Options: ${Object.keys(RACES).join(', ')}`, 'err');
       sess.raceId=rid;sess.state='REG_CLASS';
@@ -1809,6 +1817,7 @@ function handleAuth(ws,sess,raw){
       break;
     }
     case'REG_CLASS':{
+      console.log('[REG] Class received:',msg);
       const cid=msg.toLowerCase().trim().replace(/\s+/g,'');
       const key=Object.keys(CLASSES).find(k=>k===cid||CLASSES[k].name.toLowerCase().replace(/\s+/g,'')===cid);
       if(!key)return say(ws,`Invalid class. Options: ${Object.keys(CLASSES).join(', ')}`,'err');
