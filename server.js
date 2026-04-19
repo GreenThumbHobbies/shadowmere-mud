@@ -209,6 +209,113 @@ function companionSlotInfo(p){
   return {max, cur};
 }
 
+
+// ── Item profiles (image + description for LOOK [item]) ──────────────────
+const ITEM_PROFILES = {
+  // ── Weapons ──────────────────────────────────────────────────────────────
+  "rusty sword":        {img:"rusty_sword",      desc:"A blade kept together more by habit than metallurgy. Nicked, pitted, and embarrassing — but it still cuts."},
+  "iron sword":         {img:"iron_sword",        desc:"Standard military issue. Reliable, balanced, nothing fancy. The sword that has won more fights than any legendary blade simply by being present."},
+  "battle axe":        {img:"battle_axe",         desc:"Heavy enough that swinging it is a commitment. Favored by those who prefer ending a fight quickly over fighting gracefully."},
+  "knight\'s sword":  {img:"knights_sword",      desc:"Forged for a knight who never came back. The balance is exceptional. Someone put real craft into this blade."},
+  "shadow blade":      {img:"shadow_blade",        desc:"Seems to absorb the light around it rather than reflect it. Cuts with an unsettling silence."},
+  "envenomed dagger":  {img:"envenomed_dagger",    desc:"The groove along the blade is no accident. Whatever fills it isn\'t meant to be washed off."},
+  "warrior\'s blade": {img:"warriors_blade",      desc:"Forged from iron, obsidian, and the bones of those who underestimated its maker. The edge holds longer than it should."},
+  "venomsteel dagger": {img:"venomsteel_dagger",   desc:"The steel itself carries poison now — the metal and venom have become one thing. Cuts that don\'t kill still linger."},
+  "void blade":        {img:"void_blade",           desc:"The void crystal at its core makes the blade flicker between here and somewhere else. Strikes hit twice — once in this world, once in whatever is adjacent to it."},
+  "frost blade":       {img:"frost_blade",          desc:"Taken from a Frost Knight. Permanently cold. Wounds from this blade don\'t bleed — they freeze."},
+  "silver sword":      {img:"silver_sword",         desc:"Githyanki-forged silver that never dulls. Too light to feel real. Hits harder than physics should allow."},
+  "cursed blade":      {img:"cursed_blade",          desc:"Every previous owner died holding it. This is noted on the blade itself, in a script no living scholar can read."},
+  "bone staff":        {img:"bone_staff",            desc:"Built from dungeon bones bound with dark runes. Channels necromantic energy as naturally as a river channels water."},
+  "ranger\'s bow":    {img:"rangers_bow",           desc:"Found in an abandoned camp. The owner knew what they were doing — the grip is worn smooth from years of use."},
+  "bandit king\'s blade":{img:"bandit_kings_blade", desc:"Stolen finery meets brutal practicality. The gold inlay is just for show. The edge is not."},
+  "arcane tome":       {img:"arcane_tome",           desc:"The knowledge inside rewires the reader. Not metaphorically. You feel different after reading it — faster, sharper. ATK increases permanently."},
+
+  // ── Armor ─────────────────────────────────────────────────────────────────
+  "leather armor":     {img:"leather_armor",    desc:"Cured, treated, and fitted. Won\'t stop a determined blade but makes you feel better about trying."},
+  "chain mail":        {img:"chain_mail",        desc:"Rings of iron linked in patterns worked out over centuries of people trying not to die. Heavier than it looks."},
+  "plate armor":       {img:"plate_armor",       desc:"Full plate. You could survive a horse falling on you. Moving quietly is no longer a realistic option."},
+  "iron shield":       {img:"iron_shield",       desc:"Dented from previous use. The dents are reassuring — they mean the shield did its job."},
+  "forest cloak":      {img:"forest_cloak",      desc:"Woven from materials that seem to shift color depending on what\'s behind you. Practical and faintly unsettling to look at directly."},
+  "void cloak":        {img:"void_cloak",         desc:"The fabric seems to exist in two places at once. Wearing it gives the impression of being slightly elsewhere."},
+  "shadow cloak":      {img:"shadow_cloak",       desc:"Not just dark — shadow itself, woven tight. Whatever this was made from is not strictly material."},
+  "dragon scale mail": {img:"dragon_scale_mail",  desc:"Each scale shed by a living dragon, layered and bound. The scales still hold heat from the dragon that wore them first."},
+  "troll hide armor":  {img:"troll_hide_armor",   desc:"Troll hide that regenerated once after being cut, then was harvested before it could do so again. Tough enough to make an impression."},
+  "cultist robe":      {img:"cultist_robe",        desc:"Dark cloth stitched with runes in a language that predates the dungeon. Wearing it feels like being watched from inside."},
+
+  // ── Trinkets ──────────────────────────────────────────────────────────────
+  "silver ring":       {img:"silver_ring",        desc:"A plain silver band. Something was engraved on the inside but worn smooth with time. Still carries a quiet protection."},
+  "enchanted gem":     {img:"enchanted_gem",       desc:"A gem that hums at a frequency you feel in your teeth. The enchantment inside is old and doesn\'t fully translate."},
+
+  // ── Bags ─────────────────────────────────────────────────────────────────
+  "worn satchel":      {img:"worn_satchel",        desc:"Battered leather, fraying strap, buckle that sticks. Holds 6 items. Gets the job done."},
+  "leather satchel":   {img:"leather_satchel",     desc:"Well-made and sturdy. Holds 10 items without complaint. The sort of bag you pass down to someone."},
+  "traveller bag":     {img:"traveller_bag",        desc:"Built for someone who planned to go far. Multiple compartments, reinforced base. Holds 12 items."},
+  "merchant sack":     {img:"merchant_sack",        desc:"Heavy canvas, brass rings, a lock hasp that actually works. Holds 15 items. Built for moving stock, not subtlety."},
+  "magic satchel":     {img:"magic_satchel",        desc:"The inside is demonstrably larger than the outside. Physics has filed a complaint. Holds 20 items."},
+
+  // ── Potions ───────────────────────────────────────────────────────────────
+  "healing potion":    {img:"healing_potion",       desc:"Tastes terrible. Works immediately. Mira\'s own blend — the exact recipe is hers alone."},
+  "greater heal":      {img:"greater_heal",          desc:"A concentrated restoration draught. The color suggests it should not be consumed by anything living. It helps regardless."},
+  "full restore":      {img:"full_restore",           desc:"Complete cellular restoration in a glass bottle. Whatever wounds you arrived with, you won\'t leave with them."},
+  "antidote":          {img:"antidote",              desc:"Bitter, fast, effective. Neutralizes most poisons and curses encountered below the waterline."},
+  "strength tonic":    {img:"strength_tonic",        desc:"Permanently enhances muscle fiber and reaction speed. The enhancement does not reverse. ATK +3 forever."},
+  "iron skin draught": {img:"iron_skin_draught",     desc:"Literally thickens the outer layers of your dermis. Permanent. Slightly uncomfortable for the first few days. DEF +2 forever."},
+  "elixir of power":   {img:"elixir_of_power",       desc:"The Shadow Broker\'s most prized stock. What it does to the body to produce ATK +8 permanently is not discussed in polite company."},
+  "elixir of stone":   {img:"elixir_of_stone",       desc:"Derived from golem essence. The skin does not turn to stone but it might as well. DEF +8 permanently."},
+  "beast treat":       {img:"beast_treat",            desc:"Pip\'s own recipe. Smells extraordinary to animals. Has a non-zero success rate at making apex predators decide you are acceptable company."},
+
+  // ── Crafting materials ────────────────────────────────────────────────────
+  "obsidian shard":    {img:"obsidian_shard",        desc:"Volcanic glass with an edge that makes steel look lazy. Used in the finest blades and the darkest rituals."},
+  "bone shard":        {img:"bone_shard",             desc:"A fragment of dungeon bone. Old enough that it\'s more mineral than organic. Useful in dark crafting."},
+  "void crystal":      {img:"void_crystal",           desc:"A crystal that formed in a place where matter got confused about its obligations. Cold to the touch. Always."},
+  "shadow essence":    {img:"shadow_essence",         desc:"Condensed darkness. Not metaphorical. This is actual shadow, made dense enough to hold."},
+  "serpent fang":      {img:"serpent_fang",            desc:"Still carries trace venom. Handle with care. Useful in poison-based crafting and as a general threat."},
+  "dragon scale":      {img:"dragon_scale",            desc:"Shed by the young dragon, or removed the hard way. Heat-resistant enough to make excellent armor material."},
+  "troll hide":        {img:"troll_hide",              desc:"Troll hide regenerates once. This piece was harvested at the right moment. Extraordinarily tough."},
+  "ancient rune":      {img:"ancient_rune",            desc:"Stone carved with symbols that predate the language they vaguely resemble. Still active. Something is stored inside."},
+  "grave dust":        {img:"grave_dust",              desc:"Dust from the oldest graves. Carries residual death energy that necromancers find professionally useful."},
+  "swamp herb":        {img:"swamp_herb",              desc:"Bitter, medicinal, and extremely difficult to find outside of a swamp. Heals 8 HP or combines into stronger draughts."},
+
+  // ── Quest items ───────────────────────────────────────────────────────────
+  "crude map":         {img:"crude_map",              desc:"Someone who understood Shadowmere drew this. The dungeon is marked. The forest is marked. Several locations are marked with just a skull. That\'s probably fine."},
+  "torch":             {img:"torch",                   desc:"Simple pitch-soaked wood. Useful when you\'d rather see what\'s coming."},
+  "rat tail":          {img:"rat_tail",                desc:"Proof of a kill. Tormund asked for these specifically. He didn\'t elaborate on why he needs the tails and not just a body count."},
+  "deepwood root":     {img:"deepwood_root",           desc:"A gnarled root from the deepest part of the swamp. Mira has been trying to get one for months. The alchemical properties are significant — what she\'ll make from it is something special."},
+};
+
+// ── Legendary item lore (full story descriptions) ─────────────────────────
+const ITEM_LORE = {
+  "aldwyn\'s satchel": {img:"aldwyns_satchel",
+    lore:`A brown leather satchel with a brass clasp, monogrammed A.W. on the flap.\n\nAldwyn Whitmore was a traveling merchant who came to Shadowmere three weeks before you did. He was cheerful, loud, and in debt to three separate guilds in three separate cities. None of that explains what happened to him.\n\nTormund won\'t talk about it in detail. He gets quiet when the name comes up — which is the only version of quiet Tormund is capable of.\n\nReturn this to Tormund at the Broken Flagon.`},
+
+  "lich\'s crown": {img:"lichs_crown",
+    lore:`An iron crown taken from the Dungeon Lich\'s throne.\n\nThe Dungeon Lich was not always a monster. There are records — fragmented, disputed — of a wizard named Malachar who ruled these lands before the collapse. He sought immortality and found it in the worst way: alive enough to remember being human, dead enough that it no longer matters.\n\nThe crown sat on his skull for two centuries. It radiates dark power and a faint melancholy that you didn\'t expect from headgear.\n\nFather Aldric will weep when he sees this. Wear it if you must. He\'ll understand.`},
+
+  "frost queen\'s crown": {img:"frost_queens_crown",
+    lore:`A crown of living ice that does not melt.\n\nThe Frost Queen has no recorded name. She appeared in the Frozen Tundra roughly four hundred years ago and the ice followed. Travelers who survived encounters described a figure of absolute stillness — not cold in the way wind is cold, but cold the way marble is cold, the way space is cold.\n\nThe crown reforms if broken. It has been broken many times.\n\nIt is very beautiful. It does not care that you find it beautiful.`},
+
+  "storm god\'s aegis": {img:"storm_gods_aegis",
+    lore:`A shield of divine origin that crackles with contained lightning.\n\nThe Storm God predates the Sky Realm itself — the floating platforms were built around it, or perhaps grew from its presence, the scholars disagree. It does not speak. It does not negotiate. It regarded you as an inconvenience worthy of being struck by lightning, and you proved it wrong.\n\nThe aegis holds a fraction of that power now. Wearing it makes the air around you smell like rain.`},
+
+  "void emperor\'s sigil": {img:"void_emperors_sigil",
+    lore:`A seal of absolute darkness that nullifies light within a handspan.\n\nThe Void Emperor was not born in the Shadow Realm. It came from somewhere else and the Shadow Realm formed around it the way scar tissue forms around a wound. What it wanted — what it was doing — remains unclear. Its cultists knew. They\'re dead now too.\n\nThe sigil is its signature. Its mark. Carrying it means something in the deeper planes, in the dark between places.\n\nYou probably shouldn\'t think about what it means.`},
+
+  "void god\'s essence": {img:"void_gods_essence",
+    lore:`The condensed consciousness of the Void God, crystallized at the moment of its death.\n\nThe Void God was not a god in any traditional sense. It was the void become aware of itself — emptiness that had existed long enough to develop preferences. Its first preference was continuation. Its second was expansion.\n\nYou ended both.\n\nThe essence in your hands is what remains of something that existed before your world had a name. It should not be possible to hold. It is very heavy for something that is, technically, nothing.\n\nThis is the most significant thing you have ever done. The Void God would disagree, but it no longer can.`},
+
+  "aldric\'s blessing": {img:"aldrics_blessing",
+    lore:`A small reliquary containing Father Aldric\'s prayer, made permanent by faith.\n\nAldric has blessed thousands of travelers over forty years of priesthood. Most of those blessings were words spoken into darkness that offered no reply. This one is different. You defeated the Dungeon Lich — you broke the curse that has been bleeding this town dry for two centuries.\n\nAldric prayed over this for three hours before he gave it to you. His hands shook. He cried. He said the Fallen had answered him, finally, after forty years of silence.\n\nCarry it. It means something to him that you do.`},
+
+  "death baron\'s crown": {img:"death_barons_crown",
+    lore:`An iron crown worn by the lord of the Haunted Keep for three hundred years after his death.\n\nThe Death Baron was a nobleman whose name was struck from every record after he refused to die. He kept his estate, his title, his seat at council — for fifteen years, the other lords pretended not to notice, because the alternative was confrontation.\n\nEventually they walled up the keep and hoped the problem would resolve itself.\n\nIt did not.\n\nThe crown is heavy with old authority. The dead recognize it. That is useful, in the right circumstances.`},
+
+  "leviathan\'s scale": {img:"leviathans_scale",
+    lore:`A single scale from the Astral Leviathan, larger than your forearm.\n\nThe Astral Leviathan has been circling the vortex since before the planes stabilized into their current configuration. Travelers in the Astral Sea have reported it for millennia — it became a fixed feature of the landscape, like a mountain or a constellation.\n\nYou removed it from that landscape.\n\nThe scale is impossibly light despite its size. It refracts the light around it in patterns that seem almost intentional, as if it\'s trying to communicate something about the deep places between worlds.`},
+
+  "prism titan\'s core": {img:"prism_titans_core",
+    lore:`The crystalline heart of the Prism Titan, still refracting light in complex patterns.\n\nThe Prism Titan was the original guardian of the Crystal Caverns — not created, but grown over thousands of years as crystal formations slowly developed awareness. It was not malicious. It was territorial in the way ancient things are territorial: not from aggression but from the accumulated weight of time spent in one place.\n\nThe core continues its light-refracting function independent of the body that surrounded it. Researchers who have studied similar artifacts report the patterns are not random. No one has decoded them yet.`},
+};
+
 // ── Skill execution ───────────────────────────────────────────────────────
 function execSkill(ws, p, sid, m) {
   const D = (base, bonus=0, nodef=false) => {
@@ -2291,11 +2398,13 @@ function handleCmd(ws,p,raw){
         const allItems=[...p.inventory,...(world[p.room]?.items||[]),...p.equipped];
         const f=allItems.find(i=>i.toLowerCase().includes(rest));
         if(f){
-          const st=EQ[f.toLowerCase()];
-          if(st){
-            const desc=st.desc?` "${st.desc}"`:'';
-            say(ws,`${f} [${st.t.toUpperCase()}] ATK:${st.atk>=0?'+':''}${st.atk} DEF:${st.def>=0?'+':''}${st.def}${desc}`,'narrate');
-          }else{say(ws,`${f}: A useful item.`,'narrate');}
+          // Check for item profile card first
+          const fkey=f.toLowerCase();
+          if(ITEM_PROFILES[fkey]||EQ[fkey]||ITEM_LORE[fkey]){
+            showItemProfile(ws,f);
+          } else {
+            say(ws,`${f}: A useful item.`,'narrate');
+          }
           break;
         }
       }
@@ -2735,6 +2844,24 @@ const MOB_DESCS = {
   "Night Horror":"Something that should not exist in daylight. Formless in darkness. You catch glimpses."
 }
 
+function showItemProfile(ws, itemName){
+  const key = itemName.toLowerCase();
+  const profile = ITEM_PROFILES[key];
+  const lore = ITEM_LORE[key];
+  const eq = EQ[key];
+  if(!profile && !eq) return say(ws, `No details found for "${itemName}".`, 'err');
+  raw(ws, {
+    type: 'item_profile',
+    name: itemName,
+    img: profile ? '/items/' + profile.img + '.jpg' : null,
+    desc: profile ? profile.desc : (eq ? eq.desc || 'A useful item.' : 'A useful item.'),
+    lore: lore ? lore.lore : null,
+    stats: eq ? {t:eq.t, atk:eq.atk||0, def:eq.def||0, slots:eq.slots||null} : null,
+    isEquippable: !!eq,
+    isLegendary: !!lore
+  });
+}
+
 function showMobProfile(ws, mob){
   const portrait = MOB_PORTRAITS[mob.name];
   const desc = MOB_DESCS[mob.name] || 'A dangerous creature lurking in the shadows.';
@@ -2937,7 +3064,7 @@ const server=http.createServer((req,res)=>{
   // Health check for Render
   if(req.url==='/health'){res.writeHead(200);res.end('OK');return;}
   // Serve monster/npc images
-  if(req.url.startsWith('/monsters/')||req.url.startsWith('/npcs/')){
+  if(req.url.startsWith('/monsters/')||req.url.startsWith('/npcs/')||req.url.startsWith('/items/')){
     const imgPath=path.join(__dirname,'public',req.url.split('?')[0]);
     fs.readFile(imgPath,(err,data)=>{
       if(err){res.writeHead(404);res.end('Not found');}
