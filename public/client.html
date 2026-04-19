@@ -240,6 +240,36 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
   </div>
 </div>
 
+<!-- MOB PROFILE MODAL -->
+<div id="mob-profile-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center">
+  <div id="mob-profile-card" style="background:var(--bg1);border:1px solid #8b3030;border-radius:6px;width:460px;max-width:95vw;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 0 60px rgba(180,40,20,.2)">
+    <div id="mob-profile-header" style="display:flex;align-items:stretch;border-bottom:1px solid var(--border);background:var(--bg0);min-height:160px">
+      <div id="mob-profile-img-wrap" style="width:120px;flex-shrink:0;background:#0a0505;overflow:hidden">
+        <img id="mob-profile-img" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:block">
+        <div id="mob-profile-img-ph" style="width:100%;height:160px;display:flex;align-items:center;justify-content:center;color:#663333;font-size:28px">⚔</div>
+      </div>
+      <div style="flex:1;padding:16px;display:flex;flex-direction:column;justify-content:center">
+        <div id="mob-profile-name" style="font-family:var(--serif);font-size:18px;color:#ff7060;letter-spacing:2px">—</div>
+        <div id="mob-profile-zone" style="font-size:10px;color:var(--text3);margin-top:3px">—</div>
+        <div style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap">
+          <div style="font-size:11px;color:var(--text2)">HP <span id="mbp-hp" style="color:#ff7060;font-weight:bold">—</span></div>
+          <div style="font-size:11px;color:var(--text2)">ATK <span id="mbp-atk" style="color:var(--orange);font-weight:bold">—</span></div>
+          <div style="font-size:11px;color:var(--text2)">DEF <span id="mbp-def" style="color:var(--teal);font-weight:bold">—</span></div>
+          <div style="font-size:11px;color:var(--text2)">XP <span id="mbp-xp" style="color:var(--gold);font-weight:bold">—</span></div>
+        </div>
+      </div>
+    </div>
+    <div style="padding:16px;flex:1;overflow-y:auto">
+      <div style="font-size:9px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;margin-bottom:8px">Description</div>
+      <div id="mob-profile-desc" style="font-size:12px;color:var(--text);line-height:1.8;font-style:italic">—</div>
+    </div>
+    <div style="padding:10px 16px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:var(--bg0)">
+      <button class="pfoot-btn cc" onclick="cmd('attack');closeMobProfile()" style="color:var(--orange);border-color:var(--orange)">ATTACK</button>
+      <button class="pfoot-btn" onclick="closeMobProfile()">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- NPC PROFILE MODAL -->
 <div id="npc-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center">
   <div id="npc-card" style="background:var(--bg1);border:1px solid var(--border2);border-radius:6px;width:480px;max-width:95vw;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 0 60px rgba(58,158,222,.2)">
@@ -511,6 +541,7 @@ function handle(msg){
     case'npc_profile':  openNPCProfile(msg); break;
     case'mob_portrait': showMobCard(msg); break;
     case'mob_hp':       updateMobHP(msg); break;
+    case'mob_profile':  openMobProfile(msg); break;
     case'pick_race':   openPicker('race', msg.races); break;
     case'pick_class':  openPicker('class', msg.classes); break;
   }
@@ -949,6 +980,25 @@ function closeNPCProfile(){document.getElementById('npc-overlay').style.display=
 document.getElementById('npc-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('npc-overlay'))closeNPCProfile();});
 
 // ── MONSTER COMBAT CARD ──────────────────────────────────────────────────
+function openMobProfile(d){
+  const img=document.getElementById('mob-profile-img');
+  const ph=document.getElementById('mob-profile-img-ph');
+  if(d.img){img.src=d.img+'?t='+Date.now();img.style.display='block';ph.style.display='none';}
+  else{img.style.display='none';ph.style.display='flex';}
+  document.getElementById('mob-profile-name').textContent=d.name||'Unknown';
+  document.getElementById('mob-profile-zone').textContent=d.zone||'';
+  document.getElementById('mbp-hp').textContent=d.hp+'/'+d.maxhp;
+  document.getElementById('mbp-atk').textContent=d.atk;
+  document.getElementById('mbp-def').textContent=d.def;
+  document.getElementById('mbp-xp').textContent=d.xp+' XP';
+  document.getElementById('mob-profile-desc').textContent=d.desc||'A dangerous creature.';
+  document.getElementById('mob-profile-overlay').style.display='flex';
+}
+function closeMobProfile(){document.getElementById('mob-profile-overlay').style.display='none';}
+document.getElementById('mob-profile-overlay').addEventListener('click',e=>{
+  if(e.target===document.getElementById('mob-profile-overlay'))closeMobProfile();
+});
+
 function showMobCard(d){
   playSound('attack');
   const card=document.getElementById('mob-card');
