@@ -1783,7 +1783,9 @@ function handleAuth(ws,sess,raw){
       const p=hydrate(data);p.ws=ws;p.loggedIn=true;sessions.set(ws,p);
       say(ws,`Welcome back, ${p.name} the ${p.raceName||''} ${p.className}!`,'ok');
       bAll({type:'line',text:`${p.name} the ${p.raceName||''} ${p.className} has entered Shadowmere.`,cls:'narrate'});
-      describeRoom(ws,p);sidebar(ws,p);break;
+      try{describeRoom(ws,p);}catch(e){console.error('[DESCRIBE ERROR]',e.message);}
+      try{sidebar(ws,p);}catch(e){console.error('[SIDEBAR ERROR]',e.message);}
+      break;
     }
     case'REG_USER':
       sess.user=msg.toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,20);
@@ -1811,7 +1813,17 @@ function handleAuth(ws,sess,raw){
       const key=Object.keys(CLASSES).find(k=>k===cid||CLASSES[k].name.toLowerCase().replace(/\s+/g,'')===cid);
       if(!key)return say(ws,`Invalid class. Options: ${Object.keys(CLASSES).join(', ')}`,'err');
       const p=newPlayer(sess.user,sess.pass,sess.charName,sess.raceId,key);
-      p.ws=ws;p.loggedIn=true;svc(p);sessions.set(ws,p);
+      p.ws=ws;p.loggedIn=true;
+      // Ensure data dirs exist before saving
+      try{
+        if(!fs.existsSync(DATA_DIR))fs.mkdirSync(DATA_DIR,{recursive:true});
+        if(!fs.existsSync(CHAR_DIR))fs.mkdirSync(CHAR_DIR,{recursive:true});
+        svc(p);
+      }catch(saveErr){
+        console.error('[SAVE FAIL]',saveErr.message);
+        // Continue anyway - player can play, just won't persist
+      }
+      sessions.set(ws,p);
       say(ws,`Welcome to Shadowmere, ${p.name} the ${p.raceName} ${p.className}!`,'ok');
       say(ws,`Race bonus: ${RACES[sess.raceId].bonus}`,'narrate');
       say(ws,'The Dungeon Lich has risen. The land needs a hero.','narrate');
@@ -1827,12 +1839,23 @@ function handleAuth(ws,sess,raw){
 
 // ── HTTP + WebSocket server ───────────────────────────────────────────────
 const server=http.createServer((req,res)=>{
-  const safe=req.url==='/'?'/client.html':req.url;
-  const fp=path.join(__dirname,'public',path.basename(safe));
-  const mime={'.html':'text/html','.css':'text/css','.js':'application/javascript'}[path.extname(fp)]||'text/plain';
+  // Health check for Render
+  if(req.url==='/health'){res.writeHead(200);res.end('OK');return;}
+  // Serve client.html for all non-asset requests
+  const isAsset = req.url.match(/\.(js|css|png|ico)$/);
+  const fp = isAsset
+    ? path.join(__dirname,'public',path.basename(req.url))
+    : path.join(__dirname,'public','client.html');
+  const mime={'.html':'text/html','.css':'text/css','.js':'application/javascript'}[path.extname(fp)]||'text/html';
   fs.readFile(fp,(err,data)=>{
-    if(err){res.writeHead(404);res.end('Not found');}
-    else{res.writeHead(200,{'Content-Type':mime});res.end(data);}
+    if(err){
+      // If client.html missing, check one level up
+      const alt=path.join(__dirname,'client.html');
+      fs.readFile(alt,(e2,d2)=>{
+        if(e2){res.writeHead(404);res.end('Not found: '+fp);}
+        else{res.writeHead(200,{'Content-Type':'text/html'});res.end(d2);}
+      });
+    }else{res.writeHead(200,{'Content-Type':mime});res.end(data);}
   });
 });
 
