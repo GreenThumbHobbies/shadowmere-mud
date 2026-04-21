@@ -963,16 +963,16 @@ function saveOptions(){
   localStorage.setItem('sm_sound',soundEnabled?'1':'0');
   localStorage.setItem('sm_vol',soundVolume);
   localStorage.setItem('sm_timestamps',showTimestamps?'1':'0');
-  // Always sync autoloot state to server when saving options
-  applyAutoLoot();
+  // Sync autoloot to server
+  const on=document.getElementById('opt-autoloot').checked;
+  window._autoloot=on;
+  send({type:'cmd',text:'autoloot '+(on?'on':'off')});
 }
 
 function applyAutoLoot(){
   const on=document.getElementById('opt-autoloot').checked;
   window._autoloot=on;
-  // Send explicit on/off so state never drifts
   send({type:'cmd',text:'autoloot '+(on?'on':'off')});
-  saveOptions();
 }
 
 function renderAliasList(){
