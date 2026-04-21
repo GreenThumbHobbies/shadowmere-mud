@@ -198,24 +198,28 @@ const MOB_PORTRAITS = {
 // ── Image resolver — tries .jpg then .jpeg then .png ────────────────────────
 function resolveImg(folder, base){
   const b = base.replace(/\.(jpg|jpeg|png)$/i,'');
-  // Check in subfolder first, then public root (handles both layouts)
+  // Strip common prefixes so filenames match GitHub upload convention (e.g. room_forest_ruins -> forest_ruins)
+  const stripped = b.replace(/^room_/,'');
+  const candidates = b === stripped ? [b] : [b, stripped];
   const locations = [
-    path.join(__dirname,'public',folder), // e.g. public/rooms/
-    path.join(__dirname,'public'),         // e.g. public/ root
+    path.join(__dirname,'public',folder),
+    path.join(__dirname,'public'),
   ];
-  for(const loc of locations){
-    for(const ext of ['jpg','jpeg','png','JPG','JPEG','PNG']){
-      try{
-        const fp = path.join(loc, b+'.'+ext);
-        if(fs.existsSync(fp)){
-          const urlBase = loc.endsWith('public') ? '' : '/'+folder;
-          return urlBase+'/'+b+'.'+ext.toLowerCase();
-        }
-      }catch(e){}
+  for(const cand of candidates){
+    for(const loc of locations){
+      for(const ext of ['jpg','jpeg','png','JPG','JPEG','PNG']){
+        try{
+          const fp = path.join(loc, cand+'.'+ext);
+          if(fs.existsSync(fp)){
+            const urlBase = loc.endsWith('public') ? '' : '/'+folder;
+            return urlBase+'/'+cand+'.'+ext.toLowerCase();
+          }
+        }catch(e){}
+      }
     }
   }
-  // Default fallback — let client try, show placeholder on fail
-  return '/'+folder+'/'+b+'.jpg';
+  // Fallback: use stripped name (matches GitHub upload convention)
+  return '/'+folder+'/'+stripped+'.jpg';
 }
 
 // ── Room profiles — detailed descriptions + image slots ───────────────────
@@ -4133,3 +4137,4 @@ server.listen(PORT,'0.0.0.0',()=>{
   console.log('  ╚══════════════════════════════════════════════════╝');
   console.log('');
 });
+
