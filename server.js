@@ -197,18 +197,24 @@ const MOB_PORTRAITS = {
 
 // ── Image resolver — tries .jpg then .jpeg then .png ────────────────────────
 function resolveImg(folder, base){
-  // Strip any existing extension from base
   const b = base.replace(/\.(jpg|jpeg|png)$/i,'');
-  // Check disk for each extension in order — works on Render since images
-  // are in the repo and copied to disk on deploy
-  for(const ext of ['jpg','jpeg','png']){
-    try{
-      const fp = path.join(__dirname,'public',folder,b+'.'+ext);
-      if(fs.existsSync(fp)) return '/'+folder+'/'+b+'.'+ext;
-    }catch(e){}
+  // Check in subfolder first, then public root (handles both layouts)
+  const locations = [
+    path.join(__dirname,'public',folder), // e.g. public/rooms/
+    path.join(__dirname,'public'),         // e.g. public/ root
+  ];
+  for(const loc of locations){
+    for(const ext of ['jpg','jpeg','png','JPG','JPEG','PNG']){
+      try{
+        const fp = path.join(loc, b+'.'+ext);
+        if(fs.existsSync(fp)){
+          const urlBase = loc.endsWith('public') ? '' : '/'+folder;
+          return urlBase+'/'+b+'.'+ext.toLowerCase();
+        }
+      }catch(e){}
+    }
   }
-  // Not found on disk — return jpg path anyway so client can attempt load
-  // (handles cases where files are served via CDN or not yet deployed)
+  // Default fallback — let client try, show placeholder on fail
   return '/'+folder+'/'+b+'.jpg';
 }
 
@@ -3672,9 +3678,15 @@ function handleCmd(ws,p,raw){
     case'auction':case'ah':{const pts=rest.split(' ');auctionCmd(ws,p,pts[0].toLowerCase(),pts.slice(1).join(' '));break;}
     case'housing':case'room':case'inn':{const pts=rest.split(' ');housingCmd(ws,p,pts[0]||'enter',pts.slice(1).join(' '));break;}
     case'autoloot':{
-      p.autoloot=!p.autoloot;
-      say(ws,`Auto-loot ${p.autoloot?'ON — items picked up automatically':'OFF — items dropped on ground'}.`,p.autoloot?'ok':'sys');
-      svc(p);break;
+      // Support: AUTOLOOT (toggle), AUTOLOOT ON, AUTOLOOT OFF
+      if(rest==='on')  p.autoloot=true;
+      else if(rest==='off') p.autoloot=false;
+      else p.autoloot=!p.autoloot;
+      say(ws,`Auto-loot ${p.autoloot?'✓ ON — items picked up automatically after combat':'OFF — items stay on the ground'}.`,p.autoloot?'ok':'sys');
+      svc(p);
+      // Echo current state back to client for UI sync
+      raw(ws,{type:'autoloot_state',enabled:p.autoloot});
+      break;
     }
     case'alias':{
       if(!rest){
