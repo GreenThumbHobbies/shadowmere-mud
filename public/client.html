@@ -963,6 +963,8 @@ function saveOptions(){
   localStorage.setItem('sm_sound',soundEnabled?'1':'0');
   localStorage.setItem('sm_vol',soundVolume);
   localStorage.setItem('sm_timestamps',showTimestamps?'1':'0');
+  // Always sync autoloot state to server when saving options
+  applyAutoLoot();
 }
 
 function applyAutoLoot(){
