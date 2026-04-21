@@ -194,6 +194,194 @@ const MOB_PORTRAITS = {
 };
 
 
+
+// ── Room profiles — detailed descriptions + image slots ───────────────────
+const ROOM_PROFILES = {
+
+  // ── Town of Shadowmere ───────────────────────────────────────────────────
+  "town_square": {
+    img: "room_town_square",
+    detail: `The cobblestones of Town Square have been worn smooth by a thousand years of boots. Seven streets converge here in a rough circle around the Adventure Shrine — a ring of standing stones that crackles with cold blue light even in the middle of the day.
+
+The Shrine draws the eye first. Then the Notice Board, plastered with bounties and announcements in varying states of weathering. Then the buildings — the Temple spire to the west, the warm lantern glow of the Broken Flagon to the east, Market Street climbing away to the north.
+
+A single old coin glints between two cobblestones near the Shrine. Someone must drop one every time they leave.`,
+    atmosphere: "The air smells of woodsmoke, rain on stone, and something faintly electric from the Shrine."
+  },
+
+  "market_street": {
+    img: "room_market_street",
+    detail: `Market Street runs north from Town Square between two rows of buildings that lean toward each other as if sharing a secret. The cobbles here are newer — the old ones were pulled up and replaced after the flooding three winters back.
+
+The Weaponsmith's hammer rings out from the north end of the lane. A painted sign swings above the alley entrance to the east — no name on it, just a painted eye, which regulars know means the Shadow Broker. Pip's Menagerie banners hang to the west, perpetually at risk of being torn loose by whatever unusual animal Pip has acquired this week.`,
+    atmosphere: "The street smells of iron filings, animal feed, and something unidentifiable from the alley."
+  },
+
+  "tavern": {
+    img: "room_tavern",
+    detail: `The Broken Flagon was named for the ceramic mug mounted above the bar — Tormund's father threw it at a man who deserved it, and Tormund has kept the two pieces ever since. The tavern itself is a low-ceilinged room of dark timber, scarred tables, and a hearth that has not been fully extinguished in thirty years.
+
+Half-full tankards sit on the bar from last night. Tormund does not clear them until he knows whether their owners are coming back. Sometimes they do not.
+
+The smell of old ale, pipe smoke, and roasting meat is thick enough to wear. A wanted board behind the bar lists names Tormund would prefer not to see come through the door.`,
+    atmosphere: "Warm, close, slightly too loud. The fire pops."
+  },
+
+  "apothecary": {
+    img: "room_apothecary",
+    detail: `Mira's apothecary is organized by a logic only she fully understands. Bottles cover every surface — clear glass, dark glass, ceramic, wax-sealed, cork-stopped, labelled in a handwriting that grows smaller and more precise the more dangerous the contents.
+
+Dried plants hang from the ceiling in dense clusters. The mortar on the counter is stained nine colors. A small notebook beside it is open to a page of calculations that probably represent weeks of work.
+
+Mira herself rarely explains what she is making. She considers the question an interruption.`,
+    atmosphere: "Sharp, herbal, and faintly sulfurous. The kind of smell that stays in your clothes."
+  },
+
+  "weaponsmith": {
+    img: "room_weaponsmith",
+    detail: `Grimwald's forge is the hottest building in Shadowmere and possibly the loudest. The man himself is usually bent over the anvil when you arrive, and he will finish what he is doing before he acknowledges you. This is not rudeness — he simply will not ruin a piece for a conversation.
+
+Finished weapons hang on the walls in varying states of ornamentation. The plain ones are usually better. Grimwald considers decorative metalwork to be the province of people who have never actually used a blade.
+
+The floor is dark with decades of scale and ash. The bellows in the corner is large enough to inflate a small building.`,
+    atmosphere: "Overwhelmingly hot. The smell of hot iron, coal smoke, and quenching oil."
+  },
+
+  "temple": {
+    img: "room_temple",
+    detail: `The Temple of the Fallen was grand once. High vaulted ceilings, colored glass in the upper windows, carved stone that told the story of the Fallen gods in panels around the walls. The glass is mostly gone now — some broken, some removed for safety, one window boarded up after a storm fifteen years ago that nobody got around to repairing.
+
+Father Aldric kneels at the altar regardless. He has knelt here for forty years. The altar cloth is immaculate because he launders it himself. The candles are always fresh because he replaces them before they burn down.
+
+He prays to gods who have not answered in a long time. He does not seem to have stopped believing they will.`,
+    atmosphere: "Cold, quiet, and faintly incense-scented. Sound carries strangely here."
+  },
+
+  "adventure_shrine": {
+    img: "room_adventure_shrine",
+    detail: `Seven standing stones form a rough circle on the elevated platform above Town Square, each carved from a different stone — granite, basalt, limestone, marble — brought from the zones they correspond to. The runes cut into their faces glow in the blue-white of very old magic.
+
+At the centre, a shallow stone basin holds a flame that burns without fuel and without smoke. The Keeper stands at its edge, eyes closed, lips moving in a constant low murmur — the coordinates of distant places, kept active by repetition.
+
+The platform itself is cold even in summer. The air feels thinner here, as if the Shrine exists slightly outside the world it connects.`,
+    atmosphere: "Cold, ozone-sharp. The flame makes no sound. The Keeper's murmur is the only sound."
+  },
+
+  "south_gate": {
+    img: "room_south_gate",
+    detail: `The South Gate is where the town ends and the world begins. Two iron-banded posts mark the boundary — the gates themselves were taken down years ago and never replaced. What passes through here does not need a gate to stop it.
+
+A torch bracket on the right post holds a fresh torch. Someone replaces it every morning. Nobody knows who.
+
+Beyond the posts, the road south becomes a track, and the track becomes a path, and the path loses confidence in itself within fifty meters of the tree line. The forest beyond is old enough that the trees have names — the locals know them, and do not share them with newcomers.
+
+At night, something watches from the tree line. It has not attacked anyone standing at the gate. It is not clear why.`,
+    atmosphere: "Wind from the south brings the smell of wet leaves and dark soil."
+  },
+
+  "pet_store": {
+    img: "room_pet_store",
+    detail: `Pip's Exotic Animal Menagerie smells exactly as you would expect a building containing birds, reptiles, and at least one thing that has not been identified yet. Pip himself is 3.5 feet of pure enthusiasm, permanently in motion, and currently explaining something to a snake that does not appear to be listening.
+
+The cages and tanks cover every wall and most of the floor. Labels on the enclosures are written in Pip's hand and range from precise ("Rare Coral Serpent, venomous, do not reach in") to philosophical ("Whatever this is. 23 intelligence. Do not look directly at it.").
+
+Beast Treats are kept behind the counter. Pip makes them himself from a recipe he will not share.`,
+    atmosphere: "Warm, humid, and extremely varied in scent."
+  },
+
+  "alley": {
+    img: "room_alley",
+    detail: `The alley between the smithy and the apothecary is narrow enough that two people cannot pass without one of them turning sideways. The painted eye above the entrance is the only sign. Regulars know it. Newcomers figure it out eventually.
+
+The passage bends twice before opening into the small courtyard where the Shadow Broker operates. The bends are not architectural — they are deliberate, so that no one approaching from Market Street can see what is happening at the other end.
+
+The cobbles here are clean in an eerie way. Nothing accumulates. People do not leave things behind in this alley.`,
+    atmosphere: "Shadowed even at noon. Cold. Quieter than it should be this close to a busy street."
+  },
+
+  "black_market": {
+    img: "room_black_market",
+    detail: `The courtyard at the end of the alley is small, walled on three sides, and roofed with canvas that keeps the rain off without blocking the exits. The Shadow Broker stands in the same spot every time — hood up, hands clasped, face completely invisible inside the shadow of the cowl.
+
+The goods are not displayed. You describe what you want. The Broker either has it or does not, and tells you the price with the manner of someone who has already decided it is non-negotiable.
+
+A single red lamp hangs from the canvas frame. It does not flicker.`,
+    atmosphere: "Still air. The lamp gives red light. No sound from the street."
+  },
+
+  "guild_district": {
+    img: "room_guild_district",
+    detail: `The Guild District occupies the north end of the temple road — a broad lane of buildings that announce their importance through architecture. Heavy doors, carved lintels, brass fittings, windows that are slightly larger than necessary.
+
+The Guild Registry sits at the north end, identifiable by the queue that forms outside it on registration days. Registrar Voss can be seen through the window at his desk, surrounded by towers of ledgers, wearing the expression of a man who has been personally wronged by disorder.
+
+Guild Hall Row extends east — a line of hall entrances, each bearing the name and sigil of its guild above the door.`,
+    atmosphere: "Formal. The kind of street that makes you straighten your posture automatically."
+  },
+
+  "guild_registry": {
+    img: "room_guild_registry",
+    detail: `The Guild Registry is a room almost entirely composed of paper. Ledgers line every wall from floor to ceiling. Scroll cases fill a cabinet that takes up the entire east wall. Loose documents cover every surface that a ledger does not.
+
+Registrar Voss sits at the centre of it behind a desk that is technically clear — he considers a cluttered desk a moral failing — working through a stack of applications with methodical precision. He does not look up when you enter. He finishes his sentence first.
+
+The registry records every guild ever formed in Shadowmere, going back two hundred and thirty years. Voss knows the contents of every ledger. He finds this unremarkable.`,
+    atmosphere: "The smell of old paper and ink. Perfectly quiet except for the scratch of Voss's pen."
+  },
+
+  "guild_hall_row": {
+    img: "room_guild_hall_row",
+    detail: `A row of hall entrances line the east side of the Guild District — heavy doors, each bearing the carved name and sigil of the guild within. The quality of the carving varies significantly, which tells you something about the age and resources of each guild.
+
+Between the halls, narrow passages lead to the service yards behind them. The district is busier on evenings when guilds hold their meetings — the halls light up and voices carry through the stone.
+
+An empty hall at the end of the row still bears the ghost of a name where the sign was removed. Nobody talks about which guild it was.`,
+    atmosphere: "Quiet during the day. The stone here is older than the rest of the district."
+  },
+
+  // ── Temple Crypt ─────────────────────────────────────────────────────────
+  "temple_crypt": {
+    img: "room_temple_crypt",
+    detail: `The crypt beneath the Temple of the Fallen was sealed for fifty years. Father Aldric unsealed it himself — he would not say why, and he will not discuss what he found when he did.
+
+The stairs from the temple descend into a vaulted chamber of old limestone. The walls hold burial niches, most of them occupied. The inscriptions above each niche are in a script that predates common language. The crypt scholar who was brought in to translate them left without completing the work and did not explain why.
+
+The air is very cold and very still. The candles Aldric places here burn without guttering. The further south you go, the older the stonework becomes — and the dungeon below is older still.`,
+    atmosphere: "Cold, absolutely still air. The silence has texture."
+  },
+
+  // ── Ashford Village ──────────────────────────────────────────────────────
+  "ashford_inn": {
+    img: "room_ashford_inn",
+    detail: `Old Barret's inn in Ashford is smaller than the Broken Flagon and older, and has the particular quality of a building that has been repaired so many times it is more repair than original structure. Barret runs it alone since his wife passed, and has done for eight years.
+
+The common room holds six tables. The kitchen is better than the building suggests — Barret was a cook before he was an innkeeper, and the standards of a previous life have not entirely faded.
+
+He does not ask where travelers have been or where they are going. He considers it none of his business. This makes him unusually restful company.`,
+    atmosphere: "Warm, worn in. Smells of whatever Barret is cooking."
+  },
+
+  "ashford_store": {
+    img: "room_ashford_store",
+    detail: `Marta's general store is the only place in Ashford where you can reliably get anything — supplies, tools, information, and a pointed silence if you ask the wrong question. Marta stocks it herself, prices it herself, and has a precise mental inventory of every item on every shelf.
+
+She keeps her arms crossed most of the time. Not defensively — it is simply her default position when not actively doing something with her hands. She watches customers the way someone watches weather: attentively and without particular warmth.
+
+The store is clean, well-organized, and slightly more expensive than you would expect for a village of this size. Marta considers this fair.`,
+    atmosphere: "Neat, functional. The bell above the door is the only decoration."
+  },
+
+  "ashford_healer": {
+    img: "room_ashford_healer",
+    detail: `Brother Finn arrived in Ashford three years ago, planning to stay a few weeks. The few weeks became a season when he found that the village had no healer. The season became permanent when the healer he sent for from the city never arrived.
+
+His healing room is a converted storage space behind the village hall. Herbs hang drying from the ceiling — some familiar, some not, all sourced from the surrounding forest, which Finn has mapped extensively. His notes are meticulous and written in a small dense hand.
+
+He looks tired. He usually looks tired. There is always someone who needs something.`,
+    atmosphere: "Herbal, clean. Quieter than the street outside."
+  },
+};
+
 // ── Level-scaled limits ───────────────────────────────────────────────────
 function maxCompanions(p){
   // 1 companion base, +1 per 10 levels
@@ -281,6 +469,475 @@ const ITEM_PROFILES = {
   "torch":             {img:"torch",                   desc:"Simple pitch-soaked wood. Useful when you\'d rather see what\'s coming."},
   "rat tail":          {img:"rat_tail",                desc:"Proof of a kill. Tormund asked for these specifically. He didn\'t elaborate on why he needs the tails and not just a body count."},
   "deepwood root":     {img:"deepwood_root",           desc:"A gnarled root from the deepest part of the swamp. Mira has been trying to get one for months. The alchemical properties are significant — what she\'ll make from it is something special."},
+
+  // ── Ashford Village ──────────────────────────────────────────────────────
+  "ashford_gate": {
+    img: "room_ashford_gate",
+    detail: `The gate marking the edge of Ashford Village is less a gate than an idea of one — two posts and a crossbar, the wood grey and cracked, the hinges rusted open decades ago. A weathered signpost has been nailed to the right post and re-nailed twice, each time at a slightly different angle.
+
+The path south leads back through the Deep Ashwood, which the locals do not enter after dark, and which some of them avoid entirely. The path north leads into Ashford proper — a village that has survived things that should have ended it, and carries the weight of that survival in everything from its architecture to its expressions.`,
+    atmosphere: "The smell of woodsmoke from cook fires. Dogs bark somewhere in the village."
+  },
+
+  "ashford_square": {
+    img: "room_ashford_square",
+    detail: `Ashford Square is a rectangle of packed earth around a stone well that has been in continuous use for two hundred years. The stone around the well-mouth is worn into a groove by rope. The bucket is new — someone replaced it last season.
+
+The villagers who cross the square do so with purpose. They do not linger, and they assess strangers with the efficient thoroughness of people who have had reasons to be careful about who arrives in their village. They are not hostile. They are thorough.
+
+The buildings around the square are low and practical — stone bases, timber upper floors, thatched roofs replaced on a rolling schedule. Nothing decorative. Everything functional.`,
+    atmosphere: "Wind comes through from the south, carrying the smell of the forest. The well rope creaks."
+  },
+
+  "ashford_healer": {
+    img: "room_ashford_healer",
+    detail: `Brother Finn arrived in Ashford three years ago, planning to stay a few weeks. The few weeks became a season when he found the village had no healer. The season became permanent when the healer he sent for from the city never arrived.
+
+His healing room is a converted storage space behind the village hall. Herbs hang drying from the ceiling — some familiar, some not, all sourced from the surrounding forest which Finn has mapped extensively in a notebook he keeps tucked in his belt. His notes are meticulous.
+
+He looks tired. He usually looks tired. There is always someone who needs something.`,
+    atmosphere: "Herbal, clean. Quieter than the street outside."
+  },
+
+  // ── Ashwood Forest ────────────────────────────────────────────────────────
+  "ashwood_edge": {
+    img: "room_ashwood_edge",
+    detail: `The edge of Ashwood is where the town ends with confidence and the forest begins with reluctance. The ash-barked trees here are pale enough to look silver in fog — which is most mornings. The canopy is thin enough that grey light reaches the ground, giving everything a washed-out quality that makes distances hard to judge.
+
+Wolves howl from somewhere that echoes. In the fog, howling seems to come from multiple directions simultaneously. The locals have stopped trying to count wolves from sound — there are always more than you expect.
+
+The path south descends into denser forest. The path north returns to the South Gate, which is visible from here — just.`,
+    atmosphere: "Cold, damp. The smell of wet bark and dead leaves. Something moves in the fog."
+  },
+
+  "forest_camp": {
+    img: "room_forest_camp",
+    detail: `The camp consists of a fire ring, a bedroll frame of cut branches, and a canvas lean-to that has been standing long enough for moss to start growing on it. A ranger's bow hangs from a peg hammered into a tree trunk. A forest cloak is draped over the bedroll frame.
+
+Whoever made this camp was competent — the site is sheltered, dry, hidden from the main path. They knew what they were doing. The fire ring has not been used in weeks.
+
+There is no sign of struggle. No sign of departure either. The camp was simply stopped in the middle of being lived in, as if the occupant stepped away for a moment and did not come back.`,
+    atmosphere: "Still. The lean-to filters wind. Birdsong — but not close."
+  },
+
+  "ashwood_deep": {
+    img: "room_ashwood_deep",
+    detail: `The Deep Ashwood is where the forest becomes itself. The trees are older here, their roots breaking through the soil in ridges wide enough to trip over. The canopy closes overhead — light reaches the floor in columns rather than broadly, so that the forest exists in alternating bands of dim and dimmer.
+
+Something large moves between the trunks at the edges of sight. It has been moving since you entered. It does not come closer. It does not stop.
+
+The worn path east leads to Ashford Village — the trees thin as you approach, and you can see firelight through the gaps. The path south follows the ground as it gradually softens toward the swamp border.`,
+    atmosphere: "The forest makes sounds — wind, settling wood, something breathing that you cannot locate."
+  },
+
+  "forest_ruins": {
+    img: "room_forest_ruins",
+    detail: `The ruins predate the forest, which is difficult to explain — the trees have grown through the walls in places, their roots lifting stones that must weigh hundreds of pounds. Whatever was built here was built before Ashwood was Ashwood.
+
+Moss covers every surface. The walls that still stand lean at angles that should not be stable and have been that way long enough that they probably are. An altar at the centre of the largest room still holds an enchanted gem that glints even in the filtered forest light — something in the stone resists weathering.
+
+The stone underfoot is different from the surrounding rock. A scholar once said it was not native to this region. They did not elaborate on where it came from.`,
+    atmosphere: "Utterly quiet — the forest noise stops at the ruin walls. The gem hums at a frequency you feel rather than hear."
+  },
+
+  "swamp_border": {
+    img: "room_swamp_border",
+    detail: `The ground gives way here — not suddenly but progressively, each step from the forest into the swamp sinking a little more than the last until the soil becomes mud and the mud becomes standing water. Logs bridge the worst sections, worn smooth from use by things heavier than humans.
+
+Serpents sun on the logs in good weather, coiled with the patience of animals that do not need to hurry. They slide into the water if approached — not out of fear, but out of preference. The water is dark and still.
+
+The smell changes completely at the border. Forest becomes something older and wetter and less welcoming.`,
+    atmosphere: "Humid, rich with decay. The smell of still water and growing things rotting into each other."
+  },
+
+  "swamp_heart": {
+    img: "room_swamp_heart",
+    detail: `The island at the heart of the swamp is dry ground barely large enough to call an island — a raised spit of firmer earth that the bog has not managed to reclaim. A watchtower stood here once. The lower third is intact; the rest sank over decades until only the stump remains, leaning toward the water at a terminal angle.
+
+Deepwood roots grow through the island soil, which makes it firmer than it should be — the roots act as a lattice beneath the ground. Rare and valuable. Mira has been trying to source them for a year.
+
+The Bog Witch has been here longer than anyone can establish. The island may be dry because of her, or she may be here because it is dry. Nobody has asked.`,
+    atmosphere: "Dense, still air. Insects. The sound of water settling. Smoke from somewhere, though there is no visible fire."
+  },
+
+  // ── Dungeon Upper ─────────────────────────────────────────────────────────
+  "dungeon_entrance": {
+    img: "room_dungeon_entrance",
+    detail: `The dungeon entrance was originally a cellar — you can see the outline of wine rack brackets in the stone at the top of the stairs, and the first few steps are finished in the same limestone as the building above. Then the architecture changes. Below a certain point the stone is different, older, cut by different tools or perhaps not cut at all but worn.
+
+The iron-banded doors that once sealed this entrance were torn from their hinges. The damage is old — the torn brackets are corroded, the wood splinters long since rotted. Whatever broke through did so long ago.
+
+The stairs descend into darkness that your eyes take time to adjust to, and when they do, it is not entirely reassuring.`,
+    atmosphere: "Cold air rises from below. Damp stone, old iron, and something else — organic, faintly sweet in a way that is not pleasant."
+  },
+
+  "dungeon_hall": {
+    img: "room_dungeon_hall",
+    detail: `The main hall of the dungeon is the highest-ceilinged space below ground — a vaulted corridor that once served as the primary access route for whatever institution used these levels. The torches in the wall brackets are not the original ones; someone replaced them at some point, though that point was still decades ago.
+
+Against one wall, largely undisturbed, lies Aldwyn's satchel. It was not dropped in a hurry — it was placed there, upright, the clasp fastened. The significance of this depends on what you know about Aldwyn.
+
+The hall connects to every other section of the upper dungeon. In the dungeon's working days, this would have been a busy place. Now the foot traffic is mostly undead, which is quieter but less comfortable.`,
+    atmosphere: "The torches gutter even with no draft. Sound carries in ways that make the hall feel larger than it is."
+  },
+
+  "dungeon_armory": {
+    img: "room_dungeon_armory",
+    detail: `The armory still smells of oil and metal from a hundred years ago — stone holds scent the way nothing else does. The weapon racks are rotted to frames, the leather straps that held blades dissolved to dust. What was stored here is mostly gone, taken by the dungeon's current occupants or by previous adventurers.
+
+One chest remains intact — the lock was smashed rather than picked, which suggests whoever opened it was strong rather than patient. It holds what it holds now. The original contents are someone else's problem.
+
+An armored skeleton stands at the north end of the room with the posture of someone who is still, technically, on duty.`,
+    atmosphere: "Cold and metallic. The smell of old iron lingers in the stone."
+  },
+
+  "dungeon_well": {
+    img: "room_dungeon_well",
+    detail: `The well chamber was not built for water. The shaft descends further than it should — you cannot hear anything when you drop a stone in, which means it goes down further than any practical well would need to. The murals surrounding it on three walls depict what is clearly a ritual, told in panels from left to right.
+
+The left panel shows a gathering. The right panel shows what was raised. The middle panels — the actual process — have been deliberately defaced, the stone gouged away. Someone knew what was depicted and made sure it could not be replicated.
+
+The risen cultist in this room is not the worst thing that came from that well.`,
+    atmosphere: "A faint draft rises from the well shaft. Cold, and carrying a smell that has no name."
+  },
+
+  "crypts": {
+    img: "room_dungeon_crypts",
+    detail: `The crypts were designed to hold the dead permanently. The stone sarcophagi are cut from single blocks, the lids fitted and sealed with lead. The seals were not enough.
+
+Several lids have been pushed aside — not shattered, not pried open, but displaced from the inside by steady pressure over time. The sarcophagi that were opened this way are empty. What they contained has redistributed itself throughout the dungeon, which is the polite way of explaining the current infestation.
+
+The silver ring on the floor near the main aisle was dropped rather than placed — it rolled under a sarcophagus and was forgotten. By whom, and why they had it, and where they went, is not recorded.`,
+    atmosphere: "Absolute silence except for your own movement. The air is perfectly still."
+  },
+
+  "crypt_deep": {
+    img: "room_dungeon_sealed_vault",
+    detail: `The sealed vault at the deepest point of the crypts was sealed for a reason that was never written down — a deliberate omission, which is its own kind of record. The iron door was not broken down from outside. It was blasted open from within.
+
+The sarcophagus at the centre of the vault glows blue from the void crystal sealed inside it — the crystal was placed there as a containment measure, which means someone understood what they were containing. The Crypt Lich that now occupies this space was either what was contained, or what moved in afterward.
+
+The distinction may matter less than it seems.`,
+    atmosphere: "Blue light from the sarcophagus. Cold that is not temperature — the cold of something wrong."
+  },
+
+  "prison": {
+    img: "room_dungeon_prison",
+    detail: `The prison block runs east-west with cells on both sides — iron bars set in stone, locks that were good quality once. Several cells are open. Several are locked. The locked ones are worth examining only briefly and then leaving alone.
+
+At the end of the block, a skeleton sits against the wall in the posture of someone who waited a long time. In its hand is a ring of keys. The keys fit the cells — all except the one at the far end, which takes a different kind of key and has a different kind of lock.
+
+The ghost that patrols here was the guard on duty when the dungeon fell. It has not been told otherwise.`,
+    atmosphere: "Iron and damp stone. The keys on the skeleton clink faintly when something passes."
+  },
+
+  // ── Dungeon Lower ─────────────────────────────────────────────────────────
+  "mid_dungeon": {
+    img: "room_dungeon_descent",
+    detail: `The Descent is where the dungeon changes character. Above this point the stonework is recognisably human — quarried, shaped, fitted. Below and around this junction the stone is different: older, darker, the walls smoothed by something other than tools.
+
+The cold here is significant. Not temperature alone — the kind of cold that comes from proximity to things that have absorbed warmth for centuries and given nothing back.
+
+Four directions branch from this point. North leads back up. East leads to the dragon's lair — you can smell the scorching from here. West leads to the void temple. South leads to the Lich's antechamber. Up leads to the temple crypt. This is the last point where turning back is simple.`,
+    atmosphere: "Cold that settles into muscle. The shadows here move at the edges of vision."
+  },
+
+  "dragon_lair": {
+    img: "room_dragon_lair",
+    detail: `The cavern was not constructed — it was burned out. Centuries of dragon habitation have fused the stone into smooth black glass along the lower walls, cracked and re-fused enough times that the geology is entirely alien to anything that should exist at this depth.
+
+The scorching on the ceiling tells the history of the space in blackened layers. The central depression in the floor holds the dragon's resting position, worn smooth by use.
+
+The young dragon is at the far end, fixing burning amber eyes on you with the calm, comprehensive attention of something that has decided you are interesting. Not threatening — interesting. The distinction may change.`,
+    atmosphere: "Hot. The air shimmers near the dragon. The smell of sulfur and hot stone."
+  },
+
+  "void_temple": {
+    img: "room_void_temple",
+    detail: `The void temple was not built by the dungeon's original builders. The architecture is wrong — the angles do not resolve correctly when you try to follow walls to corners, and the altar at the centre occupies more space than the room should be able to contain.
+
+The cultists that chant before the altar are living, which makes them unusual in this dungeon. They are not aware of you in any conventional way — their attention is entirely on the altar and whatever it connects to. The violet energy pulsing from the altar surface is not light in the usual sense. It is absence, made visible.
+
+The ancient tome on the altar floor was dropped, not placed. Someone changed their mind.`,
+    atmosphere: "The chanting is subsonic as much as audible. The altar light makes shadows fall in wrong directions."
+  },
+
+  "boss_antechamber": {
+    img: "room_antechamber",
+    detail: `The antechamber was designed as a statement. High ceilings, polished stone, alcoves holding armored figures that stand at rigid attention — they were ornamental once and are now functional in ways their makers did not intend.
+
+The Lich's Champion stands before the north door like a keystone in armour. The red runes on its plate are not decorative. The mace it carries has been used recently — the head is clean, which means something cleaned it after use, which means something with enough cognition to consider cleanliness is responsible for it.
+
+The black iron door to the north is not locked. It has not needed to be.`,
+    atmosphere: "Perfectly still. The champion does not breathe. The silence has mass."
+  },
+
+  "boss_chamber": {
+    img: "room_lich_chamber",
+    detail: `The Lich's Chamber is the oldest part of the dungeon. The walls hold the original construction — stone fitted so precisely that no mortar was used, assembled by someone who understood engineering at a level that has since been lost.
+
+The arcane sigils burned into the floor glow in cold blue fire that has burned for two centuries. The throne of bones at the centre was constructed over time — you can see the layering, different bones from different eras added as the collection grew. On the throne sits the Dungeon Lich.
+
+The Lich was once Malachar. You would not know that now. What looks at you from the throne carries no remaining trace of the man who built it.
+
+The Crown on its skull is the only gold in the room.`,
+    atmosphere: "Cold beyond cold. The blue sigil-light gives no warmth. The Lich has been waiting two hundred years. It is not impatient."
+  },
+
+  // ── Teleport Zones ────────────────────────────────────────────────────────
+
+  // Volcanic Peak
+  "volcanic_peak": {
+    img: "room_volcanic_peak",
+    detail: `The crater rim stands at the edge of a caldera that has been active for ten thousand years and shows no signs of stopping. The black rock underfoot is new — cooled lava from the last flow, which happened within living memory. Below the rim, rivers of molten stone move with the slow certainty of things that have never been stopped.
+
+Fire elementals patrol the ridge in patterns that suggest territory rather than purpose. They do not respond to speech or gesture. They respond to proximity and to threat, in that order.
+
+The heat at the rim is survivable. The heat below the rim is not a question worth testing.`,
+    atmosphere: "The air shimmers with heat distortion. The sound of distant stone cracking under thermal stress."
+  },
+
+  "volcanic_tunnels": {
+    img: "room_volcanic_tunnels",
+    detail: `The lava tubes beneath the crater rim are the dungeon equivalent of veins — channels cut by ancient flows, repurposed by creatures that require extreme heat to function. The walls glow in orange seams where active lava runs close to the surface, separated by inches of older rock.
+
+Strange runes cover the tunnel walls — not carved but burned in, as if a finger of fire traced them. They predate any recorded civilization and have not been translated. The researchers who attempted it described the process as making them feel watched.
+
+The Rock Wyrm treats the stone of these tunnels as water — it surfaces, submerges, travels through solid rock with the ease of something that does not experience matter as a barrier.`,
+    atmosphere: "Oppressive heat. The runes pulse with their own dim light. The floor vibrates with geological activity."
+  },
+
+  "volcano_boss": {
+    img: "room_magma_throne",
+    detail: `The Magma Throne chamber is a cathedral of cooling stone and ancient heat — the ceiling lost in darkness above, the floor a crust over active magma that flexes subtly under weight. The Throne itself is a formation of cooled lava that accumulated into a seat-like structure over centuries before something decided to use it as one.
+
+The Flame Titan is what happens when volcanic rage concentrates. It is not intelligent in any way that translates to conversation. It is a fusion of geological process and elemental fury, compressed and directed. Its attention, once fixed on you, is complete.
+
+The heat in this room is a physical pressure.`,
+    atmosphere: "The air itself burns. Every breath is work. The Titan's presence makes the crust flex."
+  },
+
+  // Frozen Tundra
+  "frozen_tundra": {
+    img: "room_frozen_tundra",
+    detail: `The ice plains extend to every horizon without feature. Snow has covered whatever was here before so completely and for so long that the landscape has forgotten it had other options. The cold is not weather — it is climate, old and established and entirely indifferent.
+
+Frost wolves circle at the far edge of vision, never quite approaching, never quite retreating. Their fur is thick enough that they appear white even against the snow, which is probably the point. They are patient in a way that suggests they understand how the cold affects prey.
+
+Ice wraiths move through the snow without disturbing it. They are cold given motion. The temperature drops further when they approach, which seems impossible, but is measurable.`,
+    atmosphere: "Wind that cuts through layers. The sound of it is the only sound. White in every direction."
+  },
+
+  "frozen_cave": {
+    img: "room_frozen_cave",
+    detail: `The cave entrance is easy to miss — the ice over it is translucent rather than opaque, and the interior light (there is interior light, though no obvious source) makes it glow blue-white in a way that the eye registers as snow rather than void.
+
+Inside, the ice is architectural — formations that have grown over centuries into shapes that look constructed, though they are not. Blue-white walls that refract light in multiples of its original intensity.
+
+Something massive occupies the back of the cave. It is breathing, which creates a regular fog-pulse at the cave mouth. It is sleeping, which is fortunate. The Yeti at rest is the size of a barn. Awake, it fills the cave entrance entirely.`,
+    atmosphere: "Cold so severe it slows thought. The interior light has no source. The Yeti's breathing is the loudest sound."
+  },
+
+  "ice_fortress": {
+    img: "room_ice_fortress",
+    detail: `The Ice Fortress was built with magic rather than labor — the walls are single pieces of ice, grown in place over years by the Frost Queen's will, shaped by temperature and pressure into something more durable than carved stone. The banner above the arch is frozen mid-flutter, preserved in the same ice as the walls.
+
+The Frost Knights at the gate have been standing here since the fortress was built. They do not patrol. They do not speak. They assess everything that approaches with eyes that burned blue before the cold reached them, and blue after. The cold did not extinguish that light.
+
+The gate arch leads north to the throne room. South leads back to the plains.`,
+    atmosphere: "Dead calm inside the fortress walls. The cold here is the Frost Queen's cold — deliberate and absolute."
+  },
+
+  "frost_throne": {
+    img: "room_frost_throne",
+    detail: `The throne room of the Ice Fortress is white. Every surface — floor, walls, ceiling, throne — is ice so pure it appears white rather than clear. The Frost Queen is encased in a shell of living ice that has grown around her over four centuries, thickening with each year.
+
+She is still in there. The pale blue eyes that regard you from within the ice are active, aware, and entirely without warmth in every sense of the word. The ice has not consumed her. She and the ice have reached an arrangement.
+
+The Crown of icicles above her head reforms if broken. This has been tested. The Crown does not consider testing a meaningful threat.`,
+    atmosphere: "Absolute cold. The silence is total — sound freezes before it travels. The Queen's eyes follow you."
+  },
+
+  // Sky Realm
+  "sky_realm": {
+    img: "room_sky_realm",
+    detail: `The cloud platforms of the Sky Realm are condensed — solid enough to walk on, soft enough that footsteps leave impressions that slowly fill. The gaps between platforms show sky in every direction, which means sky below as well as above.
+
+Wind spirits drift between the platforms with the randomness of weather given form. They are not aggressive by nature. They become aggressive by proximity.
+
+Thunder Hawks ride thermals between platforms with the ease of creatures born to it — wingspans that block the sun when they pass overhead. At this altitude, the sun is closer than it should feel.`,
+    atmosphere: "Wind from every direction. The air is thin and cold but luminous — light comes from everywhere at once."
+  },
+
+  "sky_ruins": {
+    img: "room_sky_ruins",
+    detail: `The ruins suspended in the Sky Realm predate the realm itself — they were built on the ground, wherever the ground was that they stood on, before something lifted them. The stone arches float in configurations that defy structural logic, connected by nothing visible, stable by virtue of having been stable for long enough that gravity has given up arguing.
+
+The runes carved into the stone glow faintly with absorbed sunlight. They are not the same runes as the dungeon — different hand, different purpose, different age. The Storm Feathers scattered among the ruins are fresh — the Thunder Hawks use the ruins as roost sites.`,
+    atmosphere: "The wind through the arches creates harmonics. A low chord that changes direction with the weather."
+  },
+
+  "storm_citadel": {
+    img: "room_storm_citadel",
+    detail: `The Storm Citadel is not a building. It is weather, given the permanence of architecture — the walls are cloud and compressed air and electrical potential, structured by the Storm God's presence into something that functions as enclosure without technically being solid.
+
+The Storm God regards you with contempt that is not personal. It regards everything this way. It is a force of nature that became aware enough to be offended by the existence of things smaller than itself, and has maintained that offense for as long as the Sky Realm has existed.
+
+The Aegis it carries was never crafted. It coalesced — the accumulated deflection of ten thousand lightning strikes, compressed into something wearable.`,
+    atmosphere: "Ozone so thick it tastes metallic. The static raises every hair. Thunder as ambience."
+  },
+
+  // Shadow Realm
+  "shadow_realm": {
+    img: "room_shadow_threshold",
+    detail: `The Threshold is the point where the Shadow Realm tears through into perceivable space. The tear is not dramatic — it is simply a place where what should be solid wall is not, where the stone of the edges exists and the centre does not, replaced by something that looks like darkness but is darker.
+
+Shadow demons emerge from the walls with a sound like fabric tearing. They are not summoned — they live in the material of the walls and push through when conditions suit them. The conditions that suit them are unclear. They suit them frequently.
+
+The Threshold is unstable in ways that physics does not have good language for.`,
+    atmosphere: "Reality has a texture here. The air feels like it is being processed rather than breathed."
+  },
+
+  "nightmare_forest": {
+    img: "room_nightmare_forest",
+    detail: `The Nightmare Forest is the Shadow Realm's version of Ashwood — the same structure, dark trees in dense arrangement, ground covered in old growth. The differences are that the trees are dead and black, the shadows move independently of their sources, and the screams that echo here have no identifiable origin.
+
+The Banshee's territory includes this forest, though she treats territory loosely — she appears where her screaming takes her, which is unpredictable. The Dark Treants are slower but more fixed in their movements, rooted enough that avoidance is possible if you pay attention.
+
+The shadows that move on their own do not have bodies attached to them. This is their natural state.`,
+    atmosphere: "The screaming is present or absent, never in between. The moving shadows cross underfoot."
+  },
+
+  "void_citadel": {
+    img: "room_void_citadel",
+    detail: `The Void Citadel is the Shadow Realm's terminus — the point where shadow becomes void, where the darkness stops being absence-of-light and becomes absence-of-presence. The walls are crystallised darkness. The floor is crystallised darkness. The throne is crystallised darkness, and the Void Emperor sits upon it.
+
+The Emperor is not a creature that became powerful. It is the Shadow Realm's power given the minimum possible amount of form necessary to have preferences. Its preference is continuation. Its secondary preference is expansion. You represent a potential obstacle to both.
+
+The Sigil it bears is not an accessory. It is its signature on the material world.`,
+    atmosphere: "No light of any kind. The darkness is complete and physical. The Emperor's presence is felt rather than seen."
+  },
+
+  // Crystal Caverns
+  "crystal_caverns": {
+    img: "room_crystal_caverns",
+    detail: `The Crystal Caverns are the product of millions of years of mineral deposition, accelerated and shaped by something magical that occurred in the deep geological past and has not been identified. The formations tower fifteen meters in places — pillars and clusters of luminescent crystal that generate their own light from stored energy, no source required.
+
+The light is beautiful and disorienting. Reflections multiply in the crystal faces until the cavern appears infinite, every direction appearing to continue further than it does.
+
+Crystal golems move through the caverns with the certainty of creatures that have never known darkness. The gem spiders are harder to see — their gemstone abdomens reflect the crystal light, making them appear as light sources rather than predators.`,
+    atmosphere: "Brilliant, prismatic light that shifts with movement. Silence except for the faint crystalline tones when formations resonate."
+  },
+
+  "gem_vault": {
+    img: "room_gem_vault",
+    detail: `The Gem Vault is the heart of the Crystal Caverns — a natural chamber where the densest mineral deposits accumulated, raw gemstones covering every surface in layers. Prismatic shards, void crystals, forms that do not correspond to any catalogued mineral.
+
+The Diamond Guardian exists to prevent removal of the vault's contents. It is not aggressive in a standard sense — it does not pursue beyond the vault boundary. Within the vault, it is absolute. The diamond that comprises it has never been sourced to any known deposit.`,
+    atmosphere: "The light here is almost painful — every surface reflects and magnifies. The Guardian's presence shifts the light patterns."
+  },
+
+  "crystal_depths": {
+    img: "room_crystal_depths",
+    detail: `The Crystalline Depths are where the cavern's magic concentrates. The Prism Titan rose from the floor over thousands of years — crystal formations developing awareness, then purpose, then the specific purpose of guarding what accumulated below it.
+
+The Titan does not communicate. It rises from the crystal floor like something that grew rather than arrived, and its presence refracts all available light into patterns complex enough that looking at it directly becomes difficult. The patterns it creates are not random. Researchers who have studied them from a distance believe they encode something. No one has decoded it.`,
+    atmosphere: "The light is overwhelming. The Titan's presence bends it into geometry that should not be possible."
+  },
+
+  // Haunted Keep
+  "haunted_keep": {
+    img: "room_haunted_keep",
+    detail: `The keep courtyard was once a functional space — stables, a well, a smithy in the east corner. The structures are still there, partially. The overgrowth has been at them for three hundred years and is winning on all fronts.
+
+The wailing spirits that patrol the courtyard move in patterns that correspond to the original layout — they are still performing their functions, whatever those were. A wailing specter crosses the courtyard on a path that would take it through the stable door, if the stable door still existed.
+
+The keep's silence is not silence. It is sound that has been produced for so long it has become part of the air.`,
+    atmosphere: "The wailing is both ambient and specific. The overgrowth muffles but does not eliminate it."
+  },
+
+  "keep_dungeons": {
+    img: "room_keep_dungeons",
+    detail: `The Keep's dungeon is below the courtyard — cells hewn from the bedrock beneath the castle foundation, which means they predate the castle itself. Someone was imprisoning people here before the Keep was built. The records of why, if they existed, are gone.
+
+The prisoners who remain are undead, still in their cells, still wearing what they wore when they were alive. The chains are original — three hundred years old and still functional because nothing down here has been disturbing them.
+
+The Chained Revenant drags its chains with a sound that carries through stone. You can hear it before you enter.`,
+    atmosphere: "Below-ground cold. The chain sound echoes. The air has never been changed."
+  },
+
+  "keep_great_hall": {
+    img: "room_keep_great_hall",
+    detail: `The Great Hall of the keep is the largest space in the structure — long enough that the far end is in dim light even with the sconces burning, and the sconces here do burn, maintained by something that has not given up on the pretense of habitation.
+
+The head table at the far end is set. The places are laid with three-hundred-year-old tableware, dust-covered and corroded, arranged with the formality of a dinner that is perpetually about to begin.
+
+At the head of the table sits the Death Baron — the lord who refused to die, whose title became a joke in the capital, whose keep was sealed to let the problem resolve itself. The problem did not resolve itself. It dressed for dinner.`,
+    atmosphere: "The sconces burn with no visible fuel. The hall is cold despite them. The Baron's presence makes the formal setting grotesque."
+  },
+
+  // Astral Sea
+  "astral_sea": {
+    img: "room_astral_sea",
+    detail: `The Astral Sea is the medium through which things travel between planes — a space that is not quite space, light that is not quite light, filled with the residue of everything that has ever moved between worlds. The silver light here has no source. It comes from everything equally.
+
+The shallows are called shallow relative to what is further in, not relative to any floor — there is no floor. Astral sharks swim through the medium as if it were water, which is not entirely metaphorical. Plane Walkers drift through it with the ease of creatures that have been traveling it for lifetimes.
+
+The horizon, in every direction, is infinite.`,
+    atmosphere: "Weightless. The light is constant and sourceless. Sound travels differently — too far, too clearly."
+  },
+
+  "astral_wreckage": {
+    img: "room_astral_wreckage",
+    detail: `The Astral Sea preserves what it catches. The wreckage here is from civilizations that lost their planes — the worlds are gone, but what was traveling between them when the worlds ended ended up here instead, drifting in the silver light for as long as the sea has existed.
+
+The Githyanki pirates board the wrecks with practiced efficiency. They have been working the astral wreckage lanes for generations, extracting value from the remnants of dead civilizations. They are not hostile by default. They are hostile by circumstance, and circumstances arise frequently.
+
+The ancient tomes and enchanted gems found in the wrecks are from places that no longer exist.`,
+    atmosphere: "The silver light flickers near the wreckage. The ships settle as if in water — slowly, with groaning."
+  },
+
+  "astral_depths": {
+    img: "room_astral_vortex",
+    detail: `The Astral Vortex is where the Sea churns into itself — a perpetual rotation of planar energy that has been moving since the planes first separated. The light here is different: not the ambient silver of the shallows but something that bends around the vortex's rotation, making depth and distance impossible to gauge.
+
+The Astral Leviathan has been circling the vortex since before recorded history. It is the oldest creature encountered in any accessible plane. Its scale makes the vortex appear manageable by comparison — the vortex, which is large enough to consume a city.
+
+The Leviathan does not attack. It circles. Then it notices you. Then it considers you. The consideration is uncomfortable.`,
+    atmosphere: "The rotation is felt more than seen — a pull, a disorientation. The Leviathan's passage displaces the medium."
+  },
+
+  // Void Sanctum
+  "void_sanctum": {
+    img: "room_void_sanctum_ante",
+    detail: `The Void Sanctum Antechamber is at the edge of existence — not metaphorically, but in the literal sense that the material world has become thin here, stretched over the void like skin over bone. The walls look solid because they are still technically there, but light travels through them differently, and your hand, if pressed against them, would meet less resistance than stone should provide.
+
+Void Wraiths patrol the passage — not from instruction but from proximity. They are what void becomes when it is adjacent to material space long enough. They do not have intentions. They have presence, and their presence erases.
+
+The passage north leads to the Inner Sanctum. The passage east leads to the Library.`,
+    atmosphere: "The material world is thin here. Cold that is the absence of heat rather than the presence of cold."
+  },
+
+  "void_library": {
+    img: "room_void_library",
+    detail: `Every book ever lost is here — consumed by the void when it was lost, preserved in the void's version of preservation, which means present and unreachable simultaneously. The shelves extend beyond sight in a space that is larger than the structure containing it by an amount that ruins measurement.
+
+The Void Scholars guard the library with the dedication of people who discovered something they considered worth protecting and then lost the capacity to leave. They are still reading. The books they hold shift contents when you look away from them.
+
+The ancient tomes that can be physically retrieved are the ones the void has not yet fully claimed. They are still in the process of being consumed. They are still, for now, readable.`,
+    atmosphere: "The library has the quality of a dream of a library — almost right. The scholars' presence is the most solid thing here."
+  },
+
+  "sanctum_inner": {
+    img: "room_void_inner_sanctum",
+    detail: `The Inner Sanctum is nothing made into a room by the fact of being entered. The walls are void. The floor is void. The ceiling is void. These are functional descriptions — there are surfaces here, and they behave as walls, floor, and ceiling — but they are not made of anything that physics accounts for.
+
+The Void God is here. It is not in the room — it is the room. The primordial emptiness that became aware of itself over the course of cosmic time, that developed the preference for continuation and the secondary preference for expansion, that the entirety of the Void Sanctum exists to protect — it is here, and it has noticed you, and its noticing is the most complete attention you will ever receive.
+
+Void God's Essence, if retrieved from this place, will be the condensed consciousness of something that existed before your world had a name.`,
+    atmosphere: "The nothing here is total. There is no atmosphere. There is only the God, and its attention, and what you do next."
+  },
+
 };
 
 // ── Legendary item lore (full story descriptions) ─────────────────────────
@@ -1849,29 +2506,52 @@ async function doTalk(ws,p,target){
 }
 
 async function doAsk(ws,p,question){
+  // Find NPC to talk to — must be in same room with AI
   const npcsHere=Object.values(NPCS).filter(n=>n.room===p.room&&n.ai);
-  const npc=npcsHere[0];
-  if(!npc)return say(ws,'No one to ask here.','err');
+  if(!npcsHere.length)return say(ws,'There is no one here to ask.','err');
+  // If question starts with a name, address that NPC specifically
+  const npc=npcsHere.length===1 ? npcsHere[0]
+    : npcsHere.find(n=>question.toLowerCase().startsWith(n.name.split(' ')[0].toLowerCase()))
+    || npcsHere[0];
   const apiKey=process.env.ANTHROPIC_API_KEY;
-  if(!apiKey||typeof fetch==='undefined'){
-    const fb=npc.idle?.[rnd(0,(npc.idle.length||1)-1)];
-    say(ws,fb||`${npc.name} looks thoughtful but says nothing.`,'narrate');
+  // No API key — graceful fallback to idle lines
+  if(!apiKey){
+    const fb=(npc.idle||[])[rnd(0,Math.max(0,(npc.idle||[]).length-1))];
+    say(ws,`${npc.name}: "${fb||'I have nothing to say on that.'}"`, 'narrate');
     return;
   }
-  say(ws,`You ask: "${question}"`,'prompt');
-  const ctx=`Player: ${p.name} the ${p.raceName} ${p.className}, Level ${p.level}, HP ${p.hp}/${p.maxhp}, in ${world[p.room]?.name||p.room}.`;
+  say(ws,`You ask ${npc.name}: "${question}"`,'prompt');
+  say(ws,`${npc.name} considers your words...`,'sys');
+  const ctx=[
+    `Player: ${p.name} the ${p.raceName} ${p.className} Level ${p.level}`,
+    `HP: ${p.hp}/${p.maxhp} Gold: ${p.gold}g`,
+    `Location: ${world[p.room]?.name||p.room}`,
+    `Quests: ${Object.entries(p.quests||{}).map(([k,v])=>k+':'+v).join(', ')||'none'}`,
+  ].join('. ');
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
-      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:150,system:npc.personality+'\n\nContext: '+ctx,messages:[{role:'user',content:question}]})
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:200,
+        system:npc.personality+'\n\nGame context: '+ctx+'\n\nStay in character. 1-3 sentences. Do not use quotation marks in your response.',
+        messages:[{role:'user',content:question}]
+      })
     });
+    if(!res.ok){
+      const err=await res.text();
+      console.error('[NPC AI] HTTP',res.status,err.slice(0,200));
+      throw new Error('API '+res.status);
+    }
     const data=await res.json();
-    const reply=data?.content?.[0]?.text||`${npc.name} regards you silently.`;
+    const reply=(data?.content?.[0]?.text||'').trim()||`${npc.name} regards you silently.`;
     say(ws,`${npc.name}: "${reply}"`,'narrate');
   }catch(e){
-    const fb=npc.idle?.[rnd(0,(npc.idle.length||1)-1)];
-    say(ws,fb||`${npc.name} looks thoughtful but says nothing.`,'narrate');
+    console.error('[NPC AI]',e.message);
+    const fb=(npc.idle||[])[rnd(0,Math.max(0,(npc.idle||[]).length-1))];
+    const fbMsg=fb||'I have nothing more to say on that.';
+    say(ws,`${npc.name}: "${fbMsg}"`,'narrate');
   }
 }
 
@@ -2519,37 +3199,96 @@ function handleCmd(ws,p,raw){
   switch(v){
     case'look':case'l':{
       if(rest){
-        // Check for NPC in room first
-        const npcMatch=Object.values(NPCS).find(n=>n.room===p.room&&n.name.toLowerCase().includes(rest.toLowerCase()));
-        if(npcMatch){showNPCProfile(ws,npcMatch);break;}
-        // Check for monster in room
-        const mobMatch=(world[p.room]?.monsters||[]).find(m=>!m.dead&&m.name.toLowerCase().includes(rest.toLowerCase()));
-        if(mobMatch){showMobProfile(ws,mobMatch);break;}
-        const tgt=[...sessions.values()].find(x=>x.loggedIn&&x.name&&x.name.toLowerCase()===rest.toLowerCase());
-        if(tgt){showProfile(ws,p,tgt);break;}
-        const allItems=[...p.inventory,...(world[p.room]?.items||[]),...p.equipped];
-        const f=allItems.find(i=>i.toLowerCase().includes(rest));
-        if(f){
-          // Check for item profile card first
-          const fkey=f.toLowerCase();
-          if(ITEM_PROFILES[fkey]||EQ[fkey]||ITEM_LORE[fkey]){
-            showItemProfile(ws,f);
-          } else {
-            say(ws,`${f}: A useful item.`,'narrate');
-          }
+        const rl=rest.toLowerCase();
+        // ── LOOK ROOM — detailed room profile card ───────────────────────
+        if(rl==='room'||rl==='here'||rl==='around'){
+          showRoomProfile(ws,p,p.room);break;
+        }
+        // ── Look at a direction — peek into adjacent room ──────────────────
+        const dirMap={north:'north',south:'south',east:'east',west:'west',up:'up',down:'down',
+                      n:'north',s:'south',e:'east',w:'west',u:'up',d:'down',out:'out',o:'out'};
+        if(dirMap[rl]){
+          const dir=dirMap[rl];
+          const rm=world[p.room];
+          const adjId=rm?.exits?.[dir];
+          if(!adjId)return say(ws,`Nothing that way.`,'err');
+          const adjRm=world[adjId];
+          if(!adjRm)return say(ws,`Nothing that way.`,'err');
+          say(ws,`You peer ${dir}...`,'narrate');
+          say(ws,`[ ${adjRm.name} ]`,'loot');
+          say(ws,adjRm.desc,'narrate');
+          const visM=(adjRm.monsters||[]).filter(m=>!m.dead);
+          if(visM.length) say(ws,`  You can make out: ${visM.map(m=>m.name).join(', ')}...`,'combat');
+          const visI=adjRm.items||[];
+          if(visI.length) say(ws,`  Something is on the ground: ${visI.join(', ')}.`,'loot');
           break;
         }
+        // ── Look at shrine specifically ────────────────────────────────────
+        if(rl==='shrine'||rl==='adventure shrine'){
+          say(ws,'','sys');
+          say(ws,'✦ ══════ THE ADVENTURE SHRINE ══════ ✦','skill');
+          say(ws,'Seven ancient standing stones form a circle, each taller than two men.','narrate');
+          say(ws,'Azure runes pulse across their faces — the names of distant lands written in a script older than Shadowmere itself.','narrate');
+          say(ws,'At the centre, a shallow basin holds flame that burns without fuel. No wind touches it.','narrate');
+          say(ws,'The Keeper tends these stones day and night, whispering coordinates to the flame.','narrate');
+          say(ws,'Those who have proven themselves may step into the light and choose their destination.','narrate');
+          say(ws,'','sys');
+          say(ws,'To use the Shrine: go UP from Town Square, then type SHRINE to see destinations.','sys');
+          say(ws,'Each zone requires a minimum level. The Shrine will not carry the unprepared.','sys');
+          break;
+        }
+        // ── Check for NPC in room ──────────────────────────────────────────
+        const npcMatch=Object.values(NPCS).find(n=>n.room===p.room&&n.name.toLowerCase().includes(rl));
+        if(npcMatch){showNPCProfile(ws,npcMatch);break;}
+        // ── Check for monster in room ──────────────────────────────────────
+        const mobMatch=(world[p.room]?.monsters||[]).find(m=>!m.dead&&m.name.toLowerCase().includes(rl));
+        if(mobMatch){showMobProfile(ws,mobMatch);break;}
+        // ── Check for another player ──────────────────────────────────────
+        const tgt=[...sessions.values()].find(x=>x.loggedIn&&x.name&&x.name.toLowerCase()===rl);
+        if(tgt){showProfile(ws,p,tgt);break;}
+        // ── Check for item ─────────────────────────────────────────────────
+        const allItems=[...p.inventory,...(world[p.room]?.items||[]),...p.equipped];
+        const f=allItems.find(i=>i.toLowerCase().includes(rl));
+        if(f){
+          const fkey=f.toLowerCase();
+          if(ITEM_PROFILES[fkey]||EQ[fkey]||ITEM_LORE[fkey]){ showItemProfile(ws,f); }
+          else { say(ws,`${f}: A useful item.`,'narrate'); }
+          break;
+        }
+        say(ws,`You don't see any "${rest}" here.`,'err');
+      } else {
+        describeRoom(ws,p);
       }
-      describeRoom(ws,p);break;
+      break;
     }
     case'take':case'get':{
       const rm=world[p.room];if(!rm)break;
-      const idx=(rm.items||[]).findIndex(i=>i.toLowerCase().includes(rest));
-      if(idx===-1)return say(ws,`No '${rest}' here.`,'err');
-      const it=rm.items.splice(idx,1)[0];p.inventory.push(it);
-      say(ws,`You pick up the ${it}.`,'ok');
-      const eqCheck=EQ[it.toLowerCase()];
-      if(eqCheck)say(ws,`  [${eqCheck.t.toUpperCase()}] ATK+${eqCheck.atk} DEF+${eqCheck.def} — type EQUIP ${it} to use it.`,'sys');
+      const rl2=rest.toLowerCase();
+      // GET ALL or GET — pick up everything in the room
+      if(!rl2||rl2==='all'||rl2==='everything'){
+        if(!(rm.items||[]).length)return say(ws,'Nothing here to pick up.','err');
+        const taken=[...rm.items];rm.items=[];
+        taken.forEach(it=>{
+          p.inventory.push(it);
+          say(ws,`You pick up the ${it}.`,'ok');
+          const eq=EQ[it.toLowerCase()];
+          if(eq)say(ws,`  [${eq.t.toUpperCase()}] ATK+${eq.atk} DEF+${eq.def} — EQUIP ${it} to use it.`,'sys');
+        });
+        if(taken.length>1)say(ws,`Picked up ${taken.length} items.`,'loot');
+        sidebar(ws,p);break;
+      }
+      // GET [item] — pick up a specific item (or all matching if multiple)
+      const matches=(rm.items||[]).filter(i=>i.toLowerCase().includes(rl2));
+      if(!matches.length)return say(ws,`No '${rest}' here.`,'err');
+      matches.forEach(it=>{
+        const idx=rm.items.indexOf(it);
+        if(idx>-1){
+          rm.items.splice(idx,1);p.inventory.push(it);
+          say(ws,`You pick up the ${it}.`,'ok');
+          const eq=EQ[it.toLowerCase()];
+          if(eq)say(ws,`  [${eq.t.toUpperCase()}] ATK+${eq.atk} DEF+${eq.def} — EQUIP ${it} to use it.`,'sys');
+        }
+      });
       sidebar(ws,p);break;
     }
     case'drop':{
@@ -2810,8 +3549,16 @@ function handleCmd(ws,p,raw){
       if(!here.length)return say(ws,'No NPCs here.','sys');
       here.forEach(n=>say(ws,`  ${n.name} — ${n.title} (TALK ${n.name.split(' ')[0].toLowerCase()})`, 'narrate'));break;
     }
-    case'talk':case'speak':doTalk(ws,p,rest).catch(()=>say(ws,'(The NPC seems distracted.)','sys'));break;
-    case'ask':if(!rest)return say(ws,'ASK [question]','err');doAsk(ws,p,rest).catch(()=>say(ws,'(No response.)','sys'));break;
+    case'talk':case'speak':{
+      // TALK [npc name] or just TALK
+      doTalk(ws,p,rest).catch(e=>{console.error('[TALK]',e.message);say(ws,'(The NPC seems distracted right now.)','sys');});
+      break;
+    }
+    case'ask':{
+      if(!rest)return say(ws,'ASK [question] — ask the NPC in this room something.','err');
+      doAsk(ws,p,rest).catch(e=>{console.error('[ASK]',e.message);say(ws,'(No response from the NPC.)','sys');});
+      break;
+    }
     case'accept':{
       if(!p._pendingQ)return say(ws,'No quest to accept. TALK to an NPC first.','err');
       const qid=p._pendingQ,q=QUESTS[qid];if(!q)return;
@@ -3026,6 +3773,26 @@ const MOB_DESCS = {
   "Bandit King":"Self-styled king in stolen finery layered over bandit armour. Overconfident grin. Dangerous.",
   "Shadow Stalker":"A predator that hunts only at night. Low to the ground, multiple dark limbs. Completely silent.",
   "Night Horror":"Something that should not exist in daylight. Formless in darkness. You catch glimpses."
+}
+
+function showRoomProfile(ws, p, roomId){
+  const rm = world[roomId||p.room];
+  if(!rm) return say(ws,'Nothing to examine here.','err');
+  const prof = ROOM_PROFILES[roomId||p.room];
+  raw(ws,{
+    type:'room_profile',
+    name: rm.name,
+    zone: rm.zone,
+    img: prof ? '/rooms/'+prof.img+'.jpg' : null,
+    desc: rm.desc,
+    detail: prof ? prof.detail : null,
+    atmosphere: prof ? prof.atmosphere : null,
+    exits: Object.keys(rm.exits||{}).join(', '),
+    items: (rm.items||[]).join(', ')||null,
+    monsters: (rm.monsters||[]).filter(m=>!m.dead).map(m=>m.name).join(', ')||null,
+    hasShop: !!rm.shop,
+    hasTeleport: !!rm.teleport,
+  });
 }
 
 function showItemProfile(ws, itemName){
