@@ -1069,6 +1069,11 @@ function openNPCProfile(d){
     // Use real image — hide canvas, show <img>
     let img=document.getElementById('npc-portrait-real');
     if(!img){img=document.createElement('img');img.id='npc-portrait-real';img.style.cssText='width:100%;height:100%;object-fit:cover;display:block;';wrap.appendChild(img);}
+    img._triedExts=[];
+    img.onerror=function(){
+      tryImageFallback(this,d.portraitImg);
+      if(this.style.display==='none'){canvas.style.display='block';}
+    };
     img.src=d.portraitImg+'?t='+Date.now();
     img.style.display='block';
     canvas.style.display='none';
@@ -1085,10 +1090,29 @@ function closeNPCProfile(){document.getElementById('npc-overlay').style.display=
 document.getElementById('npc-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('npc-overlay'))closeNPCProfile();});
 
 // ── MONSTER COMBAT CARD ──────────────────────────────────────────────────
+// Try alternate image extensions on load failure
+function tryImageFallback(imgEl, originalSrc){
+  const base = originalSrc.replace(/\.(jpg|jpeg|png)(\?.*)?$/i,'');
+  const tried = imgEl._triedExts || [];
+  const order = ['jpg','jpeg','png'];
+  const next = order.find(e => !tried.includes(e) && !originalSrc.endsWith('.'+e));
+  if(next){
+    imgEl._triedExts = [...tried, next];
+    imgEl.src = base+'.'+next+'?t='+Date.now();
+  } else {
+    // All extensions tried — hide image, show placeholder
+    imgEl.style.display='none';
+    const ph = imgEl.nextElementSibling;
+    if(ph) ph.style.display='flex';
+  }
+}
+
 function openRoomProfile(d){
   const img=document.getElementById('room-profile-img');
   const ph=document.getElementById('room-profile-img-ph');
   if(d.img){
+    img._triedExts=[];
+    img.onerror=function(){tryImageFallback(this,d.img);};
     img.src=d.img+'?t='+Date.now();
     img.style.display='block';
     ph.style.display='none';
@@ -1148,7 +1172,7 @@ function openItemProfile(d){
   // Image
   const img=document.getElementById('item-profile-img');
   const ph=document.getElementById('item-profile-img-ph');
-  if(d.img){img.src=d.img+'?t='+Date.now();img.style.display='block';ph.style.display='none';}
+  if(d.img){img._triedExts=[];img.onerror=function(){tryImageFallback(this,d.img);};img.src=d.img+'?t='+Date.now();img.style.display='block';ph.style.display='none';}
   else{img.style.display='none';ph.style.display='flex';
     // Set icon based on type
     const icons={weapon:'⚔',armor:'🛡',trinket:'💎',bag:'🎒',potion:'🧪',item:'📦'};
@@ -1195,7 +1219,7 @@ document.getElementById('item-profile-overlay').addEventListener('click',e=>{
 function openMobProfile(d){
   const img=document.getElementById('mob-profile-img');
   const ph=document.getElementById('mob-profile-img-ph');
-  if(d.img){img.src=d.img+'?t='+Date.now();img.style.display='block';ph.style.display='none';}
+  if(d.img){img._triedExts=[];img.onerror=function(){tryImageFallback(this,d.img);};img.src=d.img+'?t='+Date.now();img.style.display='block';ph.style.display='none';}
   else{img.style.display='none';ph.style.display='flex';}
   document.getElementById('mob-profile-name').textContent=d.name||'Unknown';
   document.getElementById('mob-profile-zone').textContent=d.zone||'';
