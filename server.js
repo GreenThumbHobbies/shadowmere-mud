@@ -195,6 +195,17 @@ const MOB_PORTRAITS = {
 
 
 
+// ── Image resolver — tries .jpg then .jpeg then .png ────────────────────────
+function resolveImg(folder, base){
+  // base may already have extension or not
+  const b = base.replace(/\.(jpg|jpeg|png)$/i,'');
+  for(const ext of ['jpg','jpeg','png']){
+    const fp = path.join(__dirname,'public',folder,b+'.'+ext);
+    if(fs.existsSync(fp)) return '/'+folder+'/'+b+'.'+ext;
+  }
+  return null; // not found — client will show placeholder
+}
+
 // ── Room profiles — detailed descriptions + image slots ───────────────────
 const ROOM_PROFILES = {
 
@@ -2177,7 +2188,7 @@ function startCombat(ws, p, target) {
   sayRoom(p.room, `${p.name} engages ${m.name}!`, 'combat', ws);
   // Send monster portrait if available
   const portrait=MOB_PORTRAITS[m.name];
-  if(portrait)raw(ws,{type:'mob_portrait',name:m.name,img:'/monsters/'+portrait,hp:m.hp,maxhp:m.maxhp,atk:m.atk,def:m.def});
+  if(portrait)raw(ws,{type:'mob_portrait',name:m.name,img:resolveImg('monsters',portrait),hp:m.hp,maxhp:m.maxhp,atk:m.atk,def:m.def});
 }
 
 function playerAttack(ws, p) {
@@ -3176,7 +3187,7 @@ function handleCmd(ws,p,raw){
         // Send portrait safely
         try{
           const _ap=MOB_PORTRAITS[hostiles[0].name];
-          if(_ap)raw(ws,{type:'mob_portrait',name:hostiles[0].name,img:'/monsters/'+_ap,
+          if(_ap)raw(ws,{type:'mob_portrait',name:hostiles[0].name,img:resolveImg('monsters',_ap),
             hp:hostiles[0].hp||0,maxhp:hostiles[0].maxhp||hostiles[0].hp||1,
             atk:hostiles[0].atk||0,def:hostiles[0].def||0});
         }catch(e){console.error('[PORTRAIT]',e.message);}
@@ -3783,7 +3794,7 @@ function showRoomProfile(ws, p, roomId){
     type:'room_profile',
     name: rm.name,
     zone: rm.zone,
-    img: prof ? '/rooms/'+prof.img+'.jpg' : null,
+    img: prof ? resolveImg('rooms', prof.img) : null,
     desc: rm.desc,
     detail: prof ? prof.detail : null,
     atmosphere: prof ? prof.atmosphere : null,
@@ -3804,7 +3815,7 @@ function showItemProfile(ws, itemName){
   raw(ws, {
     type: 'item_profile',
     name: itemName,
-    img: profile ? '/items/' + profile.img + '.jpg' : null,
+    img: profile ? resolveImg('items', profile.img) : null,
     desc: profile ? profile.desc : (eq ? eq.desc || 'A useful item.' : 'A useful item.'),
     lore: lore ? lore.lore : null,
     stats: eq ? {t:eq.t, atk:eq.atk||0, def:eq.def||0, slots:eq.slots||null} : null,
@@ -3816,6 +3827,7 @@ function showItemProfile(ws, itemName){
 function showMobProfile(ws, mob){
   const portrait = MOB_PORTRAITS[mob.name];
   const desc = MOB_DESCS[mob.name] || 'A dangerous creature lurking in the shadows.';
+  const base = portrait ? portrait.replace(/\.(jpg|jpeg|png)$/i,'') : null;
   raw(ws,{
     type:'mob_profile',
     name:mob.name,
@@ -3823,7 +3835,7 @@ function showMobProfile(ws, mob){
     atk:mob.atk, def:mob.def,
     xp:mob.xp, gold:mob.gold,
     desc:desc,
-    img: portrait ? '/monsters/'+portrait : null
+    img: base ? resolveImg('monsters',base) : null
   });
 }
 
@@ -3837,7 +3849,7 @@ function showNPCProfile(ws,npc){
     title:npc.title||'',
     desc:npc.desc||'',
     portrait:npc.portrait||'',
-    portraitImg:npc.portraitFile?('/npcs/'+npc.portraitFile):null,
+    portraitImg:npc.portraitFile?resolveImg('npcs',npc.portraitFile):null,
     greeting:npc.greeting||'',
     room:world[npc.room]?.name||npc.room,
     hasQuests:hasBaseQ||hasChainQ
@@ -4015,11 +4027,13 @@ const server=http.createServer((req,res)=>{
   // Health check for Render
   if(req.url==='/health'){res.writeHead(200);res.end('OK');return;}
   // Serve monster/npc images
-  if(req.url.startsWith('/monsters/')||req.url.startsWith('/npcs/')||req.url.startsWith('/items/')||req.url.match(/\.jpg$/i)){
+  if(req.url.startsWith('/monsters/')||req.url.startsWith('/npcs/')||req.url.startsWith('/items/')||req.url.startsWith('/rooms/')||req.url.match(/\.(jpg|jpeg|png)$/i)){
     const imgPath=path.join(__dirname,'public',req.url.split('?')[0]);
+    const ext=(req.url.split('?')[0]).split('.').pop().toLowerCase();
+    const mime=ext==='png'?'image/png':'image/jpeg';
     fs.readFile(imgPath,(err,data)=>{
       if(err){res.writeHead(404);res.end('Not found');}
-      else{res.writeHead(200,{'Content-Type':'image/jpeg','Cache-Control':'public,max-age=86400'});res.end(data);}
+      else{res.writeHead(200,{'Content-Type':mime,'Cache-Control':'public,max-age=86400'});res.end(data);}
     });
     return;
   }
