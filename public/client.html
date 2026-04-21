@@ -240,6 +240,69 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
   </div>
 </div>
 
+<!-- ROOM PROFILE MODAL -->
+<div id="room-profile-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;align-items:center;justify-content:center">
+  <div style="background:var(--bg1);border:1px solid var(--border2);border-radius:8px;width:520px;max-width:96vw;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 0 80px rgba(29,158,117,.15)">
+
+    <!-- Room image banner -->
+    <div id="room-img-banner" style="width:100%;height:180px;background:var(--bg0);overflow:hidden;position:relative;flex-shrink:0">
+      <img id="room-profile-img" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:none">
+      <div id="room-profile-img-ph" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:48px;color:var(--text3)">🏰</div>
+      <!-- Zone + name overlay -->
+      <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.75));padding:20px 18px 12px">
+        <div id="room-profile-zone" style="font-size:9px;letter-spacing:3px;color:#aaa;text-transform:uppercase;margin-bottom:3px">—</div>
+        <div id="room-profile-name" style="font-family:var(--serif);font-size:20px;color:#fff;letter-spacing:2px">—</div>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div style="flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px">
+
+      <!-- Short description -->
+      <div id="room-profile-desc" style="font-size:12px;color:var(--text2);line-height:1.8;border-left:2px solid var(--border2);padding-left:12px;font-style:italic">—</div>
+
+      <!-- Detailed description -->
+      <div id="room-detail-section" style="display:none">
+        <div style="font-size:9px;letter-spacing:2px;color:var(--teal,#1D9E75);text-transform:uppercase;margin-bottom:8px">Details</div>
+        <div id="room-profile-detail" style="font-size:12px;color:var(--text);line-height:1.95;white-space:pre-wrap">—</div>
+      </div>
+
+      <!-- Atmosphere -->
+      <div id="room-atm-section" style="display:none;background:var(--bg2);border-radius:4px;padding:10px 14px">
+        <div style="font-size:9px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;margin-bottom:5px">Atmosphere</div>
+        <div id="room-profile-atmosphere" style="font-size:11px;color:var(--text2);font-style:italic">—</div>
+      </div>
+
+      <!-- At a glance stats row -->
+      <div style="display:flex;gap:12px;flex-wrap:wrap;border-top:1px solid var(--border);padding-top:12px">
+        <div id="room-exits-wrap" style="display:none">
+          <div style="font-size:9px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Exits</div>
+          <div id="room-profile-exits" style="font-size:11px;color:var(--accent)">—</div>
+        </div>
+        <div id="room-items-wrap" style="display:none">
+          <div style="font-size:9px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Items here</div>
+          <div id="room-profile-items" style="font-size:11px;color:var(--gold,#BA7517)">—</div>
+        </div>
+        <div id="room-monsters-wrap" style="display:none">
+          <div style="font-size:9px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Creatures</div>
+          <div id="room-profile-monsters" style="font-size:11px;color:#ff7060">—</div>
+        </div>
+      </div>
+
+      <!-- Badges -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div id="room-shop-badge" style="display:none;font-size:9px;color:var(--teal,#1D9E75);border:1px solid var(--teal,#1D9E75);padding:3px 8px;border-radius:3px;letter-spacing:1px">🛒 SHOP</div>
+        <div id="room-teleport-badge" style="display:none;font-size:9px;color:#a080ff;border:1px solid #a080ff;padding:3px 8px;border-radius:3px;letter-spacing:1px">✦ TELEPORT</div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="padding:10px 18px;border-top:1px solid var(--border);background:var(--bg0);display:flex;gap:8px;justify-content:flex-end">
+      <button class="pfoot-btn" onclick="closeRoomProfile()">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- ITEM PROFILE MODAL -->
 <div id="item-profile-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center">
   <div id="item-profile-card" style="background:var(--bg1);border:1px solid var(--border2);border-radius:6px;width:460px;max-width:95vw;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 0 60px rgba(58,158,222,.15)">
@@ -581,6 +644,7 @@ function handle(msg){
     case'mob_hp':       updateMobHP(msg); break;
     case'mob_profile':  openMobProfile(msg); break;
     case'item_profile': openItemProfile(msg); break;
+    case'room_profile':  openRoomProfile(msg); break;
     case'pick_race':   openPicker('race', msg.races); break;
     case'pick_class':  openPicker('class', msg.classes); break;
   }
@@ -589,6 +653,8 @@ function handle(msg){
 // ── OUTPUT ────────────────────────────────────────────────
 const OUT=document.getElementById('output');
 function pr(text,cls=''){
+  // If we see a room header, show a subtle look-room hint in first room visit
+  if(cls==='room') window._lastRoomText=text;
   // Play sounds based on message type
   if(soundEnabled && text){
     if(cls==='combat' && text.includes('You strike')) playSound('attack');
@@ -1019,6 +1085,63 @@ function closeNPCProfile(){document.getElementById('npc-overlay').style.display=
 document.getElementById('npc-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('npc-overlay'))closeNPCProfile();});
 
 // ── MONSTER COMBAT CARD ──────────────────────────────────────────────────
+function openRoomProfile(d){
+  const img=document.getElementById('room-profile-img');
+  const ph=document.getElementById('room-profile-img-ph');
+  if(d.img){
+    img.src=d.img+'?t='+Date.now();
+    img.style.display='block';
+    ph.style.display='none';
+  } else {
+    img.style.display='none';
+    ph.style.display='flex';
+    // Set icon based on zone
+    const icons={'TOWN OF SHADOWMERE':'🏙','THE DUNGEON — UPPER':'💀','THE DUNGEON — LOWER':'☠',
+      'ASHWOOD FOREST':'🌲','GUILD HALLS':'🛡','THE FROZEN TUNDRA':'❄','THE VOLCANIC PEAK':'🌋',
+      'THE SKY REALM':'⛅','THE SHADOW REALM':'🌑','THE CRYSTAL CAVERNS':'💎',
+      'THE HAUNTED KEEP':'👻','THE ASTRAL SEA':'✨','THE VOID SANCTUM':'🕳'};
+    ph.textContent=icons[d.zone]||'🏰';
+  }
+  document.getElementById('room-profile-zone').textContent=d.zone||'';
+  document.getElementById('room-profile-name').textContent=d.name||'Unknown';
+  document.getElementById('room-profile-desc').textContent=d.desc||'';
+
+  // Detail section
+  const detSec=document.getElementById('room-detail-section');
+  if(d.detail){detSec.style.display='block';document.getElementById('room-profile-detail').textContent=d.detail;}
+  else detSec.style.display='none';
+
+  // Atmosphere
+  const atmSec=document.getElementById('room-atm-section');
+  if(d.atmosphere){atmSec.style.display='block';document.getElementById('room-profile-atmosphere').textContent=d.atmosphere;}
+  else atmSec.style.display='none';
+
+  // Exits
+  const exW=document.getElementById('room-exits-wrap');
+  if(d.exits){exW.style.display='block';document.getElementById('room-profile-exits').textContent=d.exits;}
+  else exW.style.display='none';
+
+  // Items
+  const itW=document.getElementById('room-items-wrap');
+  if(d.items){itW.style.display='block';document.getElementById('room-profile-items').textContent=d.items;}
+  else itW.style.display='none';
+
+  // Monsters
+  const moW=document.getElementById('room-monsters-wrap');
+  if(d.monsters){moW.style.display='block';document.getElementById('room-profile-monsters').textContent=d.monsters;}
+  else moW.style.display='none';
+
+  // Badges
+  document.getElementById('room-shop-badge').style.display=d.hasShop?'block':'none';
+  document.getElementById('room-teleport-badge').style.display=d.hasTeleport?'block':'none';
+
+  document.getElementById('room-profile-overlay').style.display='flex';
+}
+function closeRoomProfile(){document.getElementById('room-profile-overlay').style.display='none';}
+document.getElementById('room-profile-overlay').addEventListener('click',e=>{
+  if(e.target===document.getElementById('room-profile-overlay'))closeRoomProfile();
+});
+
 let currentItemName='';
 function openItemProfile(d){
   currentItemName=d.name||'';
