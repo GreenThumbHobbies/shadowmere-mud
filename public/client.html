@@ -643,6 +643,12 @@ function handle(msg){
     case'mob_portrait': showMobCard(msg); break;
     case'mob_hp':       updateMobHP(msg); break;
     case'mob_profile':  openMobProfile(msg); break;
+    case'autoloot_state':{
+      window._autoloot=msg.enabled;
+      const cb=document.getElementById('opt-autoloot');
+      if(cb)cb.checked=msg.enabled;
+      break;
+    }
     case'item_profile': openItemProfile(msg); break;
     case'room_profile':  openRoomProfile(msg); break;
     case'pick_race':   openPicker('race', msg.races); break;
@@ -962,7 +968,8 @@ function saveOptions(){
 function applyAutoLoot(){
   const on=document.getElementById('opt-autoloot').checked;
   window._autoloot=on;
-  send({type:'cmd',text:'autoloot'});
+  // Send explicit on/off so state never drifts
+  send({type:'cmd',text:'autoloot '+(on?'on':'off')});
   saveOptions();
 }
 
