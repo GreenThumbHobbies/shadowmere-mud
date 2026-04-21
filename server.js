@@ -197,13 +197,19 @@ const MOB_PORTRAITS = {
 
 // ── Image resolver — tries .jpg then .jpeg then .png ────────────────────────
 function resolveImg(folder, base){
-  // base may already have extension or not
+  // Strip any existing extension from base
   const b = base.replace(/\.(jpg|jpeg|png)$/i,'');
+  // Check disk for each extension in order — works on Render since images
+  // are in the repo and copied to disk on deploy
   for(const ext of ['jpg','jpeg','png']){
-    const fp = path.join(__dirname,'public',folder,b+'.'+ext);
-    if(fs.existsSync(fp)) return '/'+folder+'/'+b+'.'+ext;
+    try{
+      const fp = path.join(__dirname,'public',folder,b+'.'+ext);
+      if(fs.existsSync(fp)) return '/'+folder+'/'+b+'.'+ext;
+    }catch(e){}
   }
-  return null; // not found — client will show placeholder
+  // Not found on disk — return jpg path anyway so client can attempt load
+  // (handles cases where files are served via CDN or not yet deployed)
+  return '/'+folder+'/'+b+'.jpg';
 }
 
 // ── Room profiles — detailed descriptions + image slots ───────────────────
@@ -1267,7 +1273,7 @@ const WT = {
   mid_dungeon:     {zone:'THE DUNGEON — LOWER',name:'The Descent',desc:'The corridor narrows. Stone older than memory. The cold is profound.',exits:{north:'dungeon_armory',south:'boss_antechamber',east:'dragon_lair',west:'void_temple',up:'temple_crypt'},base:[],mon:[M('shadow_wraith','Shadow Wraith',30,8,2,75,15,'void crystal')],shop:null},
   dragon_lair:     {zone:'THE DUNGEON — LOWER',name:"Dragon's Lair",desc:'A vast scorched cavern. A young dragon fixes burning eyes on you.',exits:{west:'mid_dungeon'},base:['dragon scale'],mon:[M('young_dragon','Young Dragon',55,12,5,180,60,'dragon scale')],shop:null},
   void_temple:     {zone:'THE DUNGEON — LOWER',name:'Void Temple',desc:'Cultists chant before an altar pulsing with violet energy.',exits:{east:'mid_dungeon'},base:['void crystal','ancient tome'],mon:[M('void_cultist','Void Cultist',25,7,2,60,14,'cultist robe'),M('void_archon','Void Archon',38,10,3,110,28,'void crystal')],shop:null},
-  boss_antechamber:{zone:'THE DUNGEON — LOWER',name:'Antechamber of the Lich',desc:'Skeletal soldiers at attention. A black iron door looms north. The passage south is sealed — there is no retreat from here.',exits:{north:'boss_chamber'},base:[],mon:[M('lich_champion',"Lich's Champion",45,11,4,150,35,'enchanted gem')],shop:null},
+  boss_antechamber:{zone:'THE DUNGEON — LOWER',name:'Antechamber of the Lich',desc:'Skeletal soldiers at attention. A black iron door looms north. The passage south leads back to the Descent.',exits:{north:'boss_chamber',south:'mid_dungeon'},base:[],mon:[M('lich_champion',"Lich's Champion",45,11,4,150,35,'enchanted gem')],shop:null},
   boss_chamber:    {zone:'THE DUNGEON — LOWER',name:"The Lich's Chamber",desc:'Arcane sigils burn in cold blue fire. Upon a throne of bones sits the Dungeon Lich.',exits:{south:'boss_antechamber'},base:[],mon:[M('dungeon_lich','Dungeon Lich',80,14,5,500,100,"Lich's Crown")],shop:null},
   // Adventure zones
   volcanic_peak:   {zone:'VOLCANIC PEAK',name:'Crater Rim',desc:'Scorched black rock. Lava rivers below. Fire elementals patrol the ridge.',exits:{south:'volcanic_tunnels'},base:['obsidian shard'],mon:[M('fire_elem','Fire Elemental',40,10,3,110,20,'ember shard'),M('lava_golem','Lava Golem',55,13,5,160,30,'magma core')],shop:null},
