@@ -3977,6 +3977,8 @@ function handleAuth(ws,sess,inputMsg){
       bAll({type:'line',text:`${p.name} the ${p.raceName||''} ${p.className} has entered Shadowmere.`,cls:'narrate'});
       // Restore saved avatar to client
       if(p.avatar){raw(ws,{type:'avatar_saved',avatar:p.avatar});}
+      // Sync autoloot state to client options panel
+      raw(ws,{type:'autoloot_state',enabled:!!p.autoloot});
       try{describeRoom(ws,p);}catch(e){console.error('[DESCRIBE ERROR]',e.message);}
       try{sidebar(ws,p);}catch(e){console.error('[SIDEBAR ERROR]',e.message);}
       break;
@@ -4031,6 +4033,7 @@ function handleAuth(ws,sess,inputMsg){
       say(ws,`Race bonus: ${RACES[sess.raceId].bonus}`,'narrate');
       say(ws,'The Dungeon Lich has risen. The land needs a hero.','narrate');
       bAll({type:'line',text:`${p.name} the ${p.raceName} ${p.className} joins Shadowmere for the first time!`,cls:'loot'});
+      raw(ws,{type:'autoloot_state',enabled:!!p.autoloot});
       describeRoom(ws,p);sidebar(ws,p);break;
     }
   }
@@ -4130,4 +4133,3 @@ server.listen(PORT,'0.0.0.0',()=>{
   console.log('  ╚══════════════════════════════════════════════════╝');
   console.log('');
 });
-
